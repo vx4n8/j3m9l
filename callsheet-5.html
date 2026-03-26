@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REKON — Call Sheet, Redesigned</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="REKON">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --blue:#0099FF;--blue-light:#e0f2ff;--blue-mid:#b8ddf8;
+  --bg:#f5f7fa;--white:#ffffff;--text:#111111;
+  --muted:#666666;--hint:#888888;
+  --border:#e0e8f0;--field-bg:#f0f4f8;--field-border:#d0dae8;
+  --danger:#c0392b;--danger-bg:#fdf0f0;--danger-border:#f5c6c6;
+  --success:#1a8048;--success-bg:#e8f7ee;--success-border:#a8dbbe;
+  --gold:#c8a84b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:400;min-height:100vh;}
+/* HEADER */
+header{background:var(--white);padding:24px 40px 0 52px;display:flex;flex-direction:column;}
+.logo-wrap{flex-shrink:0;padding-bottom:14px;}
+.logo-wrap svg{width:100%;height:auto;max-height:68px;}
+.header-blue-line{height:1.5px;background:var(--blue);margin:0 -52px 0 -52px;}
+/* PRODUCTION LOGO */
+.production-logo-area{display:flex;align-items:center;gap:10px;}
+.prod-logo-img{max-height:36px;max-width:120px;object-fit:contain;}
+.prod-logo-placeholder{display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--hint);padding:5px 10px;border:1px dashed var(--border);border-radius:5px;cursor:pointer;transition:all 0.15s;}
+.prod-logo-placeholder:hover{border-color:var(--blue);color:var(--blue);}
+/* MAIN */
+main{max-width:860px;margin:0 auto;padding:20px 20px 60px;}
+/* EDITION LABEL + MODULE DROPDOWN */
+.edition-label{position:relative;display:inline-block;font-size:11px;color:var(--blue);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;padding-left:2px;cursor:default;user-select:none;}
+.edition-label-text{display:inline-flex;align-items:center;gap:5px;}
+.edition-label-text::after{content:'▾';font-size:9px;opacity:0.6;}
+.edition-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--white);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.10);min-width:200px;z-index:200;overflow:hidden;}
+.edition-label:hover .edition-dropdown{display:block;}
+.edition-dropdown a{display:block;padding:9px 14px;font-size:0.8rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);transition:background 0.13s,color 0.13s;}
+.edition-dropdown a:last-child{border-bottom:none;}
+.edition-dropdown a:hover{background:var(--blue-light);color:var(--blue);}
+.edition-dropdown-label{padding:7px 14px 4px;font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--hint);}
+
+/* LOADER */
+.loader-panel{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:16px;}
+.loader-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.loader-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:6px;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;border:1px solid;font-family:inherit;flex:1 1 140px;min-width:0;text-align:center;}
+.loader-btn.new{background:var(--blue);color:var(--white);border-color:var(--blue);}
+.loader-btn.new:hover{background:#0088ee;}
+.loader-btn.load{background:transparent;color:var(--text);border-color:var(--border);}
+.loader-btn.load:hover,.loader-btn.load.active{background:var(--field-bg);border-color:var(--blue);}
+.loader-list{margin-top:14px;}
+.saved-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 14px;background:var(--field-bg);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;}
+.saved-row.active{border-color:var(--success-border);background:var(--success-bg);}
+.saved-row.active .saved-name{color:var(--success);}
+.saved-info{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+.saved-name{font-size:0.92rem;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.saved-meta{font-size:0.75rem;color:var(--muted);}
+.saved-actions{display:flex;gap:7px;flex-shrink:0;}
+.saved-btn{padding:5px 13px;border-radius:5px;font-size:0.8rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;cursor:pointer;transition:all 0.13s;border:1px solid;font-family:inherit;}
+.saved-btn.load{border-color:var(--blue-mid);background:var(--blue-light);color:var(--blue);}
+.saved-btn.load:hover{background:var(--blue-mid);}
+.saved-btn.del{border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger);}
+.saved-btn.del:hover{background:#f9d5d5;}
+/* SECTIONS */
+.section{background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
+.section-header{background:var(--white);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;}
+.section-header.collapsible{cursor:pointer;user-select:none;}
+.section-header.collapsible:hover{background:var(--field-bg);}
+.section-num{background:var(--blue-light);color:#0077cc;font-weight:700;font-size:0.8rem;width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-title{font-size:0.85rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);}
+.section-tag{margin-left:auto;font-size:0.7rem;color:var(--hint);letter-spacing:0.1em;text-transform:uppercase;}
+.collapse-icon{margin-left:auto;color:var(--hint);font-size:1rem;transition:transform 0.25s;flex-shrink:0;line-height:1;}
+.section-tag+.collapse-icon{margin-left:10px;}
+.section.collapsed .collapse-icon{transform:rotate(-90deg);}
+.section-body{padding:20px;}
+.section.collapsed .section-body{display:none;}
+/* FIELDS */
+.sub-label{font-size:0.75rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.sub-label:first-child{margin-top:0;}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field-grid.triple{grid-template-columns:1fr 1fr 1fr;}
+.field-grid.quad{grid-template-columns:1fr 1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field.full{grid-column:1/-1;}
+label{font-size:0.72rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);}
+input[type=text],input[type=email],input[type=tel],input[type=date],input[type=time],input[type=number],textarea,select{background:var(--field-bg);border:1px solid var(--field-border);border-radius:5px;color:var(--text);font-family:inherit;font-size:0.92rem;padding:9px 13px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%;}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,153,255,0.1);}
+textarea{resize:none;min-height:70px;overflow:hidden;}
+select option{background:var(--white);color:var(--text);}
+.section-notes{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.section-notes label{display:block;margin-bottom:6px;}
+.section-notes textarea{min-height:64px;font-size:0.88rem;}
+/* DYNAMIC TABLES */
+.dyn-table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:0.85rem;}
+.dyn-table th{background:var(--field-bg);border:1px solid var(--border);padding:7px 10px;font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);text-align:left;}
+.dyn-table td{border:1px solid var(--border);padding:4px 5px;vertical-align:middle;}
+.dyn-table td input{background:transparent;border:none;border-radius:3px;padding:5px 7px;font-size:0.85rem;width:100%;outline:none;font-family:inherit;}
+.dyn-table td input:focus{background:var(--blue-light);box-shadow:none;}
+.dyn-table tr:nth-child(even){background:var(--field-bg);}
+.dyn-table tr:nth-child(even) td input{background:transparent;}
+.dyn-table tr:nth-child(even) td input:focus{background:var(--blue-light);}
+.dyn-row-del{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger);border-radius:4px;width:26px;height:26px;font-size:1rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;}
+.dyn-row-del:hover{background:#f9d5d5;}
+.add-row-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:5px;border:1px dashed var(--blue-mid);background:var(--blue-light);color:var(--blue);font-size:0.78rem;font-weight:600;letter-spacing:0.08em;cursor:pointer;transition:all 0.15s;font-family:inherit;text-transform:uppercase;margin-top:6px;}
+.add-row-btn:hover{background:var(--blue-mid);}
+/* SCHEDULE */
+.schedule-day{border:1px solid var(--border);border-radius:7px;margin-bottom:12px;overflow:hidden;}
+.schedule-day-header{background:var(--blue);color:var(--white);padding:9px 14px;display:flex;align-items:center;gap:10px;justify-content:space-between;}
+.schedule-day-title{font-size:0.82rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.schedule-day-body{padding:10px 14px;}
+.time-block{display:grid;grid-template-columns:120px 1fr auto;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--border);}
+.time-block:last-child{border-bottom:none;}
+.time-block input[type=time]{background:var(--field-bg);border:1px solid var(--field-border);border-radius:4px;padding:6px 8px;font-size:0.85rem;font-family:inherit;color:var(--text);}
+.time-block textarea{min-height:42px;font-size:0.85rem;}
+.time-block-del{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger);border-radius:4px;width:26px;height:26px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:inherit;}
+.time-block-del:hover{background:#f9d5d5;}
+.add-block-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:4px;border:1px dashed var(--blue-mid);background:var(--blue-light);color:var(--blue);font-size:0.76rem;font-weight:600;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;}
+.add-block-btn:hover{background:var(--blue-mid);}
+.del-day-btn{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;border-radius:4px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:0.07em;text-transform:uppercase;}
+.del-day-btn:hover{background:rgba(255,80,80,0.4);}
+/* OB NOTES */
+.ob-plot-upload{border:2px dashed var(--border);border-radius:6px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s;color:var(--hint);font-size:0.85rem;}
+.ob-plot-upload:hover{border-color:var(--blue);color:var(--blue);}
+.ob-plot-preview{max-width:100%;border-radius:6px;margin-top:10px;display:none;}
+/* ACCOMMODATION */
+.hotel-block{border:1px solid var(--border);border-radius:7px;margin-bottom:12px;overflow:hidden;}
+.hotel-block-header{background:var(--field-bg);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.hotel-block-name{font-size:0.85rem;font-weight:600;color:var(--text);}
+.hotel-block-body{padding:14px;}
+/* BUTTONS */
+.action-wrap{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:36px;margin-bottom:40px;}
+.btn-blue{background:var(--blue);color:var(--white);font-size:1rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;border:none;padding:14px 32px;border-radius:7px;cursor:pointer;transition:background 0.2s;font-family:inherit;}
+.btn-blue:hover{background:#0088ee;}
+.btn-outline{background:transparent;color:var(--blue);font-size:1rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;border:1px solid var(--blue-mid);padding:13px 32px;border-radius:7px;cursor:pointer;transition:all 0.2s;font-family:inherit;}
+.btn-outline:hover{background:var(--blue-light);border-color:var(--blue);}
+/* SAVE SECTION */
+.save-section{background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
+.save-section .section-header{border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;}
+.save-section .section-body{padding:20px;}
+.save-row{display:flex;gap:10px;flex-wrap:wrap;}
+.save-row input{flex:1;min-width:180px;}
+/* IMPORT BANNER */
+.import-banner{background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:0.83rem;color:#b8860b;display:flex;align-items:center;gap:10px;}
+.import-banner svg{flex-shrink:0;}
+/* FOOTER */
+footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;letter-spacing:0.05em;border-top:1px solid var(--border);background:var(--white);}
+.footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;}
+.footer-inner a{display:inline-flex;align-items:center;gap:4px;color:var(--hint);text-decoration:none;transition:color 0.2s;}
+.footer-inner a:hover{color:var(--blue);}
+.footer-inner a svg{width:11px;height:11px;stroke:var(--blue);flex-shrink:0;}
+.footer-sep{opacity:0.4;}
+/* PRINT */
+@media print{
+  body{background:white!important;}
+  header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .action-wrap,.loader-panel,.add-row-btn,.add-block-btn,.dyn-row-del,.del-day-btn,.time-block-del{display:none!important;}
+  .section.collapsed .section-body{display:block!important;}
+  .section{break-inside:avoid;}
+}
+@media(max-width:600px){
+  header{padding:16px 20px 0;}
+  .header-blue-line{margin:0 -20px;}
+  main{padding:14px 12px 60px;}
+  .field-grid,.field-grid.triple,.field-grid.quad{grid-template-columns:1fr;}
+  .time-block{grid-template-columns:100px 1fr auto;}
+  .loader-btns{flex-direction:column;}
+  .loader-btn{width:100%;min-width:0;flex:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-wrap">
+    <svg width="100%" viewBox="0 0 900 100" xmlns="http://www.w3.org/2000/svg">
+      <text x="14" y="82" style="font-size:88px;font-weight:300;fill:#111;font-family:sans-serif;">R</text>
+      <text x="84" y="82" style="font-size:88px;font-weight:300;fill:#111;font-family:sans-serif;">E</text>
+      <text x="196" y="82" text-anchor="middle" style="font-size:88px;font-weight:300;fill:#0099FF;font-family:sans-serif;">K</text>
+      <text x="248" y="82" style="font-size:88px;font-weight:300;fill:#111;font-family:sans-serif;">O</text>
+      <text x="324" y="82" style="font-size:88px;font-weight:300;fill:#111;font-family:sans-serif;">N</text>
+      <text x="396" y="88" style="font-size:14px;font-weight:400;fill:#999999;font-family:sans-serif;">©</text>
+      <line x1="420" y1="14" x2="420" y2="90" stroke="#ccc" stroke-width="1"/>
+      <text x="434" y="52" style="font-size:15px;font-weight:400;fill:#888;font-family:sans-serif;letter-spacing:0.14em;">CALL SHEET,</text>
+      <text x="434" y="76" style="font-size:15px;font-weight:400;fill:#0099FF;font-family:sans-serif;letter-spacing:0.14em;">REDESIGNED</text>
+    </svg>
+  </div>
+  <div class="header-blue-line"></div>
+</header>
+
+
+
+<main>
+  <div class="edition-label">
+    <span class="edition-label-text">Live TV / Outside Broadcast &nbsp;—&nbsp; Call Sheet Module</span>
+    <div class="edition-dropdown">
+      <div class="edition-dropdown-label">Switch Module</div>
+      <a href="index.html">Tech Survey</a>
+      <a href="productionform.html">Production Form</a>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div class="loader-panel" id="loaderPanel">
+    <div class="loader-btns">
+      <button class="loader-btn new" onclick="newCallSheet()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Call Sheet
+      </button>
+      <button class="loader-btn load" id="btnLoadCS" onclick="toggleLoader()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Load Call Sheet
+      </button>
+      <button class="loader-btn load" onclick="toggleImportMenu()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import ▾
+      </button>
+      <input type="file" id="surveyImportInput" accept=".zip,.json" style="display:none" onchange="importSurvey(this)">
+      <input type="file" id="csImportInput" accept=".json" style="display:none" onchange="importCallSheet(this)">
+    </div>
+    <div id="importMenu" style="display:none;margin-top:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--white);">
+      <button onclick="document.getElementById('surveyImportInput').click();document.getElementById('importMenu').style.display='none';" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--border);font-size:0.85rem;cursor:pointer;font-family:inherit;color:var(--text);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Import REKON Survey (ZIP / JSON)
+      </button>
+      <button onclick="document.getElementById('csImportInput').click();document.getElementById('importMenu').style.display='none';" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;font-size:0.85rem;cursor:pointer;font-family:inherit;color:var(--text);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Import Call Sheet (JSON)
+      </button>
+    </div>
+    <div class="loader-list" id="loaderList" style="display:none;"></div>
+  </div>
+
+  <!-- IMPORT NOTICE -->
+  <div class="import-banner" id="importBanner" style="display:none;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+    <span id="importBannerText"></span>
+  </div>
+
+  <!-- SEC 1: CALL SHEET DETAILS -->
+  <div class="section" id="sec1">
+    <div class="section-header collapsible" onclick="toggleSection('sec1')">
+      <div class="section-num">1</div>
+      <div class="section-title">Call Sheet Details</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field"><label>Show / Production Name</label><input type="text" id="f_showName" placeholder="e.g. Paul Murray Live Our Town" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Episode / TX Date</label><input type="date" id="f_txDate" onchange="triggerAutosave();autoGeocodeFromDetails()"></div>
+        <div class="field"><label>TX Time</label><input type="time" id="f_txTime" oninput="triggerAutosave()"></div>
+        <div class="field"><label>End Time</label><input type="time" id="f_endTime" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Network / Channel</label><input type="text" id="f_network" placeholder="e.g. Sky News" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Production Company</label><input type="text" id="f_prodCompany" placeholder="e.g. Australian News Channel" oninput="triggerAutosave()"></div>
+        <div class="field full"><label>Important Information / Call Sheet Notes</label><textarea id="f_csNotes" placeholder="First Aid Officer, key contacts, important notices…" oninput="autoResize(this);triggerAutosave()"></textarea></div>
+        <div class="field full">
+          <label>Production Logo</label>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <img id="prodLogoImg" src="" alt="Production logo" style="display:none;max-height:48px;max-width:160px;object-fit:contain;border:1px solid var(--border);border-radius:5px;padding:4px;">
+            <button type="button" onclick="document.getElementById('prodLogoInput').click()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:5px;border:1px dashed var(--blue-mid);background:var(--blue-light);color:var(--blue);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;" id="prodLogoBtn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Upload Production Logo
+            </button>
+            <button type="button" id="prodLogoRemoveBtn" onclick="removeLogo()" style="display:none;padding:8px 14px;border-radius:5px;border:1px solid var(--danger-border);background:var(--danger-bg);color:var(--danger);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">Remove Logo</button>
+            <input type="file" id="prodLogoInput" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEC 2: PRODUCTION CREW ON LOCATION -->
+  <div class="section collapsed" id="sec2">
+    <div class="section-header collapsible" onclick="toggleSection('sec2')">
+      <div class="section-num">2</div>
+      <div class="section-title">Production Crew on Location</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div style="overflow-x:auto;">
+        <table class="dyn-table" id="crewTable">
+          <thead><tr>
+            <th>Role</th><th>Name</th><th>Email</th><th>Phone</th><th style="width:32px;"></th>
+          </tr></thead>
+          <tbody id="crewBody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addCrewRow('crewBody')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Crew Member
+      </button>
+    </div>
+  </div>
+
+  <!-- SEC 3: NETWORK / BASE CONTACTS -->
+  <div class="section collapsed" id="sec3">
+    <div class="section-header collapsible" onclick="toggleSection('sec3')">
+      <div class="section-num">3</div>
+      <div class="section-title">Network / Base Contacts</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div style="overflow-x:auto;">
+        <table class="dyn-table" id="networkTable">
+          <thead><tr>
+            <th>Role</th><th>Name</th><th>Email</th><th>Phone</th><th style="width:32px;"></th>
+          </tr></thead>
+          <tbody id="networkBody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addCrewRow('networkBody')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Contact
+      </button>
+    </div>
+  </div>
+
+  <!-- SEC 4: EMERGENCY CONTACTS -->
+  <div class="section collapsed" id="sec4">
+    <div class="section-header collapsible" onclick="toggleSection('sec4')">
+      <div class="section-num">4</div>
+      <div class="section-title">Emergency Contacts</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field"><label>First Aid Officer</label><input type="text" id="f_firstAidOfficer" placeholder="Name" oninput="triggerAutosave()"></div>
+        <div class="field"><label>First Aid Officer Phone</label><input type="tel" id="f_firstAidPhone" placeholder="Mobile" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Nearest Hospital</label><input type="text" id="f_hospital" placeholder="Hospital name & address" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Hospital Phone</label><input type="tel" id="f_hospitalPhone" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Police Station</label><input type="text" id="f_police" placeholder="Station name & address" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Police Phone</label><input type="tel" id="f_policePhone" oninput="triggerAutosave()"></div>
+        <div class="field full"><label>Muster Point</label><input type="text" id="f_muster" placeholder="Emergency muster point" oninput="triggerAutosave()"></div>
+      </div>
+      <div style="margin-top:14px;padding:10px 14px;background:#fdf0f0;border:1px solid #f5c6c6;border-radius:6px;font-size:0.83rem;color:#c0392b;font-weight:600;letter-spacing:0.04em;">
+        🚨 IN THE EVENT OF AN EMERGENCY — DIAL 000
+      </div>
+    </div>
+  </div>
+
+  <!-- SEC 5: LOCATION -->
+  <div class="section collapsed" id="sec5">
+    <div class="section-header collapsible" onclick="toggleSection('sec5')">
+      <div class="section-num">5</div>
+      <div class="section-title">Location</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field full"><label>Venue Name</label><input type="text" id="f_venueName" placeholder="e.g. Settlers Inn Hotel – The Pavillion" oninput="triggerAutosave()"></div>
+        <div class="field full"><label>Street Address</label><input type="text" id="f_venueAddress" placeholder="Full street address" oninput="triggerAutosave()" onblur="autoGeocodeFromDetails()"></div>
+        <div class="field"><label>Suburb / Town</label><input type="text" id="f_venueSuburb" oninput="triggerAutosave()" onblur="autoGeocodeFromDetails()"></div>
+        <div class="field"><label>State</label><select id="f_venueState" onchange="triggerAutosave();autoGeocodeFromDetails()"><option value="">— Select —</option><option>QLD</option><option>NSW</option><option>VIC</option><option>SA</option><option>WA</option><option>TAS</option><option>ACT</option><option>NT</option></select></div>
+        <div class="field"><label>Venue Phone</label><input type="tel" id="f_venuePhone" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Venue Website</label><input type="text" id="f_venueWeb" placeholder="https://" oninput="triggerAutosave()"></div>
+        <div class="field"><label>GPS Coordinates</label><input type="text" id="f_gps" placeholder="Auto-fills from address" readonly></div>
+        <div class="field full"><label>Access &amp; Parking Notes</label><textarea id="f_accessNotes" placeholder="Gate codes, parking details, entry instructions…" oninput="autoResize(this);triggerAutosave()"></textarea></div>
+      </div>
+      <!-- MAP -->
+      <div class="sub-label" style="margin-top:18px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Map
+      </div>
+      <div class="map-container" style="background:var(--field-bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+        <div id="csMapPlaceholder" style="height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--hint);font-size:0.85rem;text-align:center;padding:20px;">
+          <svg width="36" height="36" viewBox="0 0 48 48" fill="none" style="opacity:0.3;"><path d="M24 4C16.27 4 10 10.27 10 18c0 11.25 14 26 14 26s14-14.75 14-26c0-7.73-6.27-14-14-14z" stroke="#0099FF" stroke-width="2" fill="none"/><circle cx="24" cy="18" r="4" stroke="#0099FF" stroke-width="2" fill="none"/></svg>
+          Enter address above to load map
+        </div>
+        <iframe id="csMapFrame" style="width:100%;height:220px;border:none;display:none;" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div id="csMapLinks" style="display:none;margin-top:8px;display:none;flex-wrap:wrap;gap:8px;">
+        <a id="csLinkApple" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--white);color:var(--text);font-size:0.8rem;text-decoration:none;">🗺 Apple Maps</a>
+        <a id="csLinkGoogle" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--white);color:var(--text);font-size:0.8rem;text-decoration:none;">🌐 Google Maps</a>
+      </div>
+      <!-- WEATHER WIDGET -->
+      <div class="sub-label" style="margin-top:18px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        TX Day Weather
+      </div>
+      <div id="csWeatherWidget" style="background:var(--field-bg);border:1px solid var(--border);border-radius:6px;padding:12px 16px;color:var(--muted);font-size:0.84rem;">Enter address and TX date to load weather forecast.</div>
+    </div>
+  </div>
+
+  <!-- SEC 6: SCHEDULE -->
+  <div class="section collapsed" id="sec6">
+    <div class="section-header collapsible" onclick="toggleSection('sec6')">
+      <div class="section-num">6</div>
+      <div class="section-title">Schedule</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div id="scheduleDays"></div>
+      <button class="add-row-btn" onclick="addScheduleDay()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Day
+      </button>
+    </div>
+  </div>
+
+  <!-- SEC 7: OB NOTES -->
+  <div class="section collapsed" id="sec7">
+    <div class="section-header collapsible" onclick="toggleSection('sec7')">
+      <div class="section-num">7</div>
+      <div class="section-title">OB Notes</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field full"><label>Broadcast Method</label><input type="text" id="f_obMethod" placeholder="e.g. LiveU, Satellite, Fibre" oninput="triggerAutosave()"></div>
+        <div class="field full"><label>OB Feeds (Main &amp; Backup)</label><textarea id="f_obFeeds" placeholder="A — Main LiveU…&#10;B — Backup LiveU…" oninput="autoResize(this);triggerAutosave()" style="min-height:80px;"></textarea></div>
+        <div class="field full"><label>Return Vision</label><textarea id="f_returnVision" placeholder="A — LiveU Return Server Ch1: …&#10;B — Redundant Return Server Ch2: …" oninput="autoResize(this);triggerAutosave()" style="min-height:60px;"></textarea></div>
+        <div class="field full"><label>Comms Notes</label><textarea id="f_commsNotes" placeholder="Bump in, comms cables, tech area setup…" oninput="autoResize(this);triggerAutosave()" style="min-height:70px;"></textarea></div>
+      </div>
+      <div class="sub-label" style="margin-top:18px;">Camera Plot</div>
+      <div class="field"><label>Camera Plot Description / Notes</label><textarea id="f_cameraPlot" placeholder="Camera positions, blocking notes…" oninput="autoResize(this);triggerAutosave()" style="min-height:60px;"></textarea></div>
+      <div style="margin-top:10px;">
+        <div class="ob-plot-upload" id="plotUploadArea" onclick="document.getElementById('plotInput').click()">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:6px;opacity:0.4;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div style="font-size:0.82rem;">Click to upload camera plot / floor plan image</div>
+          <div style="font-size:0.72rem;margin-top:4px;opacity:0.6;">JPG, PNG, GIF</div>
+        </div>
+        <input type="file" id="plotInput" accept="image/*" style="display:none" onchange="handlePlotUpload(this)">
+        <img id="plotPreview" class="ob-plot-preview" alt="Camera plot">
+        <button id="plotRemoveBtn" onclick="removePlot()" style="display:none;margin-top:6px;padding:5px 12px;border-radius:4px;border:1px solid var(--danger-border);background:var(--danger-bg);color:var(--danger);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Remove Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEC 8: ACCOMMODATION -->
+  <div class="section collapsed" id="sec8">
+    <div class="section-header collapsible" onclick="toggleSection('sec8')">
+      <div class="section-num">8</div>
+      <div class="section-title">Accommodation</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div id="hotelBlocks"></div>
+      <button class="add-row-btn" onclick="addHotelBlock()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Hotel
+      </button>
+      <div class="section-notes"><label>Accommodation Notes</label><textarea id="n_accommodation" placeholder="e.g. All rooms pre-paid. Present credit card on check-in for incidentals." oninput="autoResize(this);triggerAutosave()"></textarea></div>
+    </div>
+  </div>
+
+  <!-- SEC 9: INVOICING -->
+  <div class="section collapsed" id="sec9">
+    <div class="section-header collapsible" onclick="toggleSection('sec9')">
+      <div class="section-num">9</div>
+      <div class="section-title">Invoicing</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-grid">
+        <div class="field full"><label>Invoice To (Company Name)</label><input type="text" id="f_invCompany" placeholder="e.g. Australian News Channel Pty Ltd" oninput="triggerAutosave()"></div>
+        <div class="field full"><label>Invoice Address</label><textarea id="f_invAddress" placeholder="Att Concur_Production@…&#10;2 Holt Street&#10;Surry Hills NSW 2010" oninput="autoResize(this);triggerAutosave()" style="min-height:64px;"></textarea></div>
+        <div class="field"><label>Invoice Email</label><input type="email" id="f_invEmail" placeholder="supplier_invoices@…" oninput="triggerAutosave()"></div>
+        <div class="field"><label>CC Email</label><input type="email" id="f_invCc" placeholder="cc email" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Purchase Order Reference</label><input type="text" id="f_invPO" placeholder="PO number if supplied" oninput="triggerAutosave()"></div>
+        <div class="field"><label>Finance Contact</label><input type="text" id="f_invContact" placeholder="Contact name for invoice queries" oninput="triggerAutosave()"></div>
+        <div class="field full"><label>Invoicing Notes</label><textarea id="f_invNotes" placeholder="PAYG, Sole Trader or New Supplier setup notes…" oninput="autoResize(this);triggerAutosave()"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE SECTION -->
+  <div class="save-section" id="saveSection">
+    <div class="section-header"><div class="section-num" style="font-size:1rem;">&#9733;</div><div class="section-title">Save</div></div>
+    <div class="section-body">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="field" style="flex:1;min-width:200px;"><label>Call Sheet Name</label><input type="text" id="saveName" placeholder="e.g. PML Port Macquarie 29 Mar" oninput="triggerAutosave()"></div>
+        <button class="btn-blue" style="padding:10px 24px;font-size:0.9rem;white-space:nowrap;flex-shrink:0;" onclick="saveCallSheet()">Save Call Sheet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION WRAP -->
+  <div class="action-wrap" id="actionWrap">
+    <button class="btn-blue" onclick="exportCallSheet()">Export / Share</button>
+    <button class="btn-outline" onclick="generateReport()">Generate Call Sheet</button>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span>&copy; 2026 Patrice Roblin</span><span class="footer-sep">|</span>
+    <a href="tel:0402096781"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>0402 096 781</a><span class="footer-sep">|</span>
+    <a href="mailto:patrice@patriceroblin.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>patrice@patriceroblin.com</a><span class="footer-sep">|</span>
+    <a href="https://patriceroblin.com" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>patriceroblin.com</a>
+  </div>
+</footer>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+var _currentId = null;
+var _autosaveTimer = null;
+var _plotDataUrl = null;
+var _logoDataUrl = null;
+var _wxData = [];
+
+// ─── UTILITY ─────────────────────────────────────────────────────────────────
+function autoResize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+function toggleSection(id){
+  var t=document.getElementById(id);if(!t)return;
+  var wasOpen=!t.classList.contains('collapsed');
+  document.querySelectorAll('.section').forEach(function(s){if(s.querySelector('.section-header.collapsible'))s.classList.add('collapsed');});
+  if(!wasOpen){
+    t.classList.remove('collapsed');
+    setTimeout(function(){t.scrollIntoView({behavior:'smooth',block:'start'});},50);
+  }
+}
+function triggerAutosave(){
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer=setTimeout(function(){if(_currentId)saveCallSheet(true);},1800);
+}
+function showBanner(msg){
+  var b=document.getElementById('importBanner');
+  document.getElementById('importBannerText').textContent=msg;
+  b.style.display='flex';
+  setTimeout(function(){b.style.display='none';},5000);
+}
+
+// ─── LOGO UPLOAD ─────────────────────────────────────────────────────────────
+function handleLogoUpload(inp){
+  if(!inp.files||!inp.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){
+    _logoDataUrl=e.target.result;
+    var img=document.getElementById('prodLogoImg');
+    img.src=_logoDataUrl;img.style.display='block';
+    document.getElementById('prodLogoBtn').style.display='none';
+    document.getElementById('prodLogoRemoveBtn').style.display='inline-flex';
+    triggerAutosave();
+  };
+  r.readAsDataURL(inp.files[0]);
+  inp.value='';
+}
+function removeLogo(){
+  _logoDataUrl=null;
+  var img=document.getElementById('prodLogoImg');
+  img.src='';img.style.display='none';
+  document.getElementById('prodLogoBtn').style.display='inline-flex';
+  document.getElementById('prodLogoRemoveBtn').style.display='none';
+  triggerAutosave();
+}
+
+// ─── CREW ROLES ───────────────────────────────────────────────────────────────
+var CREW_ROLES=[
+  '','Host','Executive Producer','Producer','Production Manager','Production Assistant',
+  'Director','Assistant Director','OB Supervisor','Technical Manager','TD',
+  'Lighting Director','Lighting Technician','Gaffer','Best Boy',
+  'Audio Director','Audio Technician','Audio Assist',
+  'Camera','Camera Operator','Camera Assistant','Steadicam Operator',
+  'Vision Mixer','Graphics Operator',
+  'Presenter','Reporter','Journalist',
+  'Makeup Artist','Wardrobe','Stylist',
+  'Set Designer','Art Director',
+  'Driver','Runner','Security',
+  'Other'
+];
+
+// ─── DYNAMIC CREW TABLE ───────────────────────────────────────────────────────
+function addCrewRow(bodyId,vals){
+  vals=vals||{};
+  var tb=document.getElementById(bodyId);
+  var tr=document.createElement('tr');
+  var roleOpts=CREW_ROLES.map(function(r){
+    return '<option value="'+r+'"'+(vals.role===r?' selected':'')+'>'+r+'</option>';
+  }).join('');
+  var html='<td><select oninput="triggerAutosave()" style="background:transparent;border:none;padding:5px 7px;font-size:0.85rem;width:100%;font-family:inherit;color:var(--text);">'+roleOpts+'</select></td>';
+  ['name','email','phone'].forEach(function(f,i){
+    var ph=['Full Name','Email','Phone'][i];
+    html+='<td><input type="text" value="'+(vals[f]||'')+'" placeholder="'+ph+'" oninput="triggerAutosave()"></td>';
+  });
+  html+='<td style="text-align:center;"><button class="dyn-row-del" onclick="this.closest(\'tr\').remove();triggerAutosave()">×</button></td>';
+  tr.innerHTML=html;
+  tb.appendChild(tr);
+}
+
+function getTableData(bodyId){
+  var rows=[];
+  document.getElementById(bodyId).querySelectorAll('tr').forEach(function(tr){
+    var sel=tr.querySelector('select');
+    var ins=tr.querySelectorAll('input');
+    rows.push({role:sel?sel.value:'',name:ins[0]?ins[0].value:'',email:ins[1]?ins[1].value:'',phone:ins[2]?ins[2].value:''});
+  });
+  return rows;
+}
+function setTableData(bodyId,rows){
+  document.getElementById(bodyId).innerHTML='';
+  rows.forEach(function(r){addCrewRow(bodyId,r);});
+}
+
+// ─── WEATHER TABLE ────────────────────────────────────────────────────────────
+
+// ─── SCHEDULE ─────────────────────────────────────────────────────────────────
+var _dayCounter=0;
+function addScheduleDay(vals){
+  vals=vals||{};
+  var id='day'+(_dayCounter++);
+  var cont=document.getElementById('scheduleDays');
+  var div=document.createElement('div');
+  div.className='schedule-day';div.id=id;
+  div.innerHTML='<div class="schedule-day-header">'+
+    '<input type="text" value="'+(vals.label||'')+'" placeholder="Day label — e.g. Sunday 29th March" style="background:transparent;border:none;color:#fff;font-size:0.85rem;font-weight:600;letter-spacing:0.08em;flex:1;outline:none;font-family:inherit;" oninput="triggerAutosave()">'+
+    '<button class="del-day-btn" onclick="document.getElementById(\''+id+'\').remove();triggerAutosave()">Remove Day</button>'+
+  '</div>'+
+  '<div class="schedule-day-body" id="'+id+'_blocks"></div>'+
+  '<div style="padding:0 14px 12px;">'+
+    '<button class="add-block-btn" onclick="addTimeBlock(\''+id+'_blocks\')">'+
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Time Block'+
+    '</button>'+
+  '</div>';
+  cont.appendChild(div);
+  if(vals.blocks&&vals.blocks.length){
+    vals.blocks.forEach(function(b){addTimeBlock(id+'_blocks',b);});
+  }
+}
+function addTimeBlock(blockContId,vals){
+  vals=vals||{};
+  var cont=document.getElementById(blockContId);
+  if(!cont)return;
+  var div=document.createElement('div');
+  div.className='time-block';
+  div.innerHTML='<input type="time" value="'+(vals.time||'')+'" oninput="triggerAutosave()">'+
+    '<textarea placeholder="Activity / description…" oninput="autoResize(this);triggerAutosave()" style="min-height:42px;">'+(vals.desc||'')+'</textarea>'+
+    '<button class="time-block-del" onclick="this.closest(\'.time-block\').remove();triggerAutosave()">×</button>';
+  cont.appendChild(div);
+}
+function getScheduleData(){
+  var days=[];
+  document.getElementById('scheduleDays').querySelectorAll('.schedule-day').forEach(function(day){
+    var label=day.querySelector('input[type=text]').value;
+    var blocks=[];
+    day.querySelectorAll('.time-block').forEach(function(bl){
+      var t=bl.querySelector('input[type=time]').value;
+      var d=bl.querySelector('textarea').value;
+      blocks.push({time:t,desc:d});
+    });
+    days.push({label:label,blocks:blocks});
+  });
+  return days;
+}
+function setScheduleData(days){
+  document.getElementById('scheduleDays').innerHTML='';_dayCounter=0;
+  days.forEach(function(d){addScheduleDay(d);});
+}
+
+// ─── ACCOMMODATION ────────────────────────────────────────────────────────────
+var _hotelCounter=0;
+function addHotelBlock(vals){
+  vals=vals||{};
+  var id='hotel'+(_hotelCounter++);
+  var cont=document.getElementById('hotelBlocks');
+  var div=document.createElement('div');
+  div.className='hotel-block';div.id=id;
+  div.innerHTML='<div class="hotel-block-header">'+
+    '<div style="flex:1;">'+
+      '<input type="text" value="'+(vals.name||'')+'" placeholder="Hotel name" style="background:transparent;border:none;font-size:0.85rem;font-weight:600;color:var(--text);width:100%;outline:none;font-family:inherit;" oninput="triggerAutosave()">'+
+    '</div>'+
+    '<button class="dyn-row-del" onclick="document.getElementById(\''+id+'\').remove();triggerAutosave()" style="width:28px;height:28px;">×</button>'+
+  '</div>'+
+  '<div class="hotel-block-body">'+
+    '<div class="field-grid" style="margin-bottom:12px;">'+
+      '<div class="field"><label>Address</label><input type="text" value="'+(vals.address||'')+'" placeholder="Street address" oninput="triggerAutosave()"></div>'+
+      '<div class="field"><label>Phone</label><input type="tel" value="'+(vals.phone||'')+'" placeholder="Hotel phone" oninput="triggerAutosave()"></div>'+
+      '<div class="field"><label>Website</label><input type="text" value="'+(vals.website||'')+'" placeholder="https://" oninput="triggerAutosave()"></div>'+
+      '<div class="field"><label>Map Link</label><input type="text" value="'+(vals.mapLink||'')+'" placeholder="Google Maps URL" oninput="triggerAutosave()"></div>'+
+    '</div>'+
+    '<div style="overflow-x:auto;"><table class="dyn-table"><thead><tr><th>Name</th><th>Check In</th><th>Check Out</th><th style="width:32px;"></th></tr></thead><tbody id="'+id+'_guests"></tbody></table></div>'+
+    '<button class="add-row-btn" onclick="addGuestRow(\''+id+'_guests\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Guest</button>'+
+  '</div>';
+  cont.appendChild(div);
+  if(vals.guests&&vals.guests.length){
+    vals.guests.forEach(function(g){addGuestRow(id+'_guests',g);});
+  }
+}
+function addGuestRow(bodyId,vals){
+  vals=vals||{};
+  var tb=document.getElementById(bodyId);
+  if(!tb)return;
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td><input type="text" value="'+(vals.name||'')+'" placeholder="Guest name" oninput="triggerAutosave()"></td>'+
+    '<td><input type="date" value="'+(vals.checkin||'')+'" oninput="triggerAutosave()"></td>'+
+    '<td><input type="date" value="'+(vals.checkout||'')+'" oninput="triggerAutosave()"></td>'+
+    '<td style="text-align:center;"><button class="dyn-row-del" onclick="this.closest(\'tr\').remove();triggerAutosave()">×</button></td>';
+  tb.appendChild(tr);
+}
+function getHotelData(){
+  var hotels=[];
+  document.getElementById('hotelBlocks').querySelectorAll('.hotel-block').forEach(function(hb){
+    var inputs=hb.querySelectorAll(':scope > .hotel-block-header input');
+    var gridInputs=hb.querySelectorAll('.field-grid input');
+    var guests=[];
+    hb.querySelectorAll('tbody tr').forEach(function(tr){
+      var ins=tr.querySelectorAll('input');
+      guests.push({name:ins[0].value,checkin:ins[1].value,checkout:ins[2].value});
+    });
+    hotels.push({
+      name:inputs[0]?inputs[0].value:'',
+      address:gridInputs[0]?gridInputs[0].value:'',
+      phone:gridInputs[1]?gridInputs[1].value:'',
+      website:gridInputs[2]?gridInputs[2].value:'',
+      mapLink:gridInputs[3]?gridInputs[3].value:'',
+      guests:guests
+    });
+  });
+  return hotels;
+}
+function setHotelData(hotels){
+  document.getElementById('hotelBlocks').innerHTML='';_hotelCounter=0;
+  hotels.forEach(function(h){addHotelBlock(h);});
+}
+
+// ─── PLOT UPLOAD ──────────────────────────────────────────────────────────────
+function handlePlotUpload(inp){
+  if(!inp.files||!inp.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){
+    _plotDataUrl=e.target.result;
+    var prev=document.getElementById('plotPreview');
+    prev.src=_plotDataUrl;prev.style.display='block';
+    document.getElementById('plotRemoveBtn').style.display='inline-block';
+    document.getElementById('plotUploadArea').style.display='none';
+    triggerAutosave();
+  };
+  r.readAsDataURL(inp.files[0]);
+  inp.value='';
+}
+function removePlot(){
+  _plotDataUrl=null;
+  document.getElementById('plotPreview').style.display='none';
+  document.getElementById('plotPreview').src='';
+  document.getElementById('plotRemoveBtn').style.display='none';
+  document.getElementById('plotUploadArea').style.display='block';
+  triggerAutosave();
+}
+
+// ─── MAP + WEATHER AUTO-TRIGGER ───────────────────────────────────────────────
+var _lastGeoAddress='';
+function autoGeocodeFromDetails(){
+  var addr=fv('f_venueAddress');
+  var suburb=fv('f_venueSuburb');
+  var state=fv('f_venueState');
+  var full=(addr+' '+suburb+' '+state).trim();
+  if(!full||full===_lastGeoAddress)return;
+  _lastGeoAddress=full;
+  var encoded=encodeURIComponent(full);
+  // Map embed
+  var mapFrame=document.getElementById('csMapFrame');
+  var mapPh=document.getElementById('csMapPlaceholder');
+  var mapLinks=document.getElementById('csMapLinks');
+  mapFrame.src='https://maps.google.com/maps?q='+encoded+'&output=embed&z=15';
+  mapFrame.style.display='block';
+  mapPh.style.display='none';
+  mapLinks.style.display='flex';
+  document.getElementById('csLinkGoogle').href='https://www.google.com/maps/search/?api=1&query='+encoded;
+  document.getElementById('csLinkApple').href='https://maps.apple.com/?q='+encoded;
+  // GPS via nominatim
+  fetch('https://nominatim.openstreetmap.org/search?format=json&q='+encoded+'&limit=1',{headers:{'Accept-Language':'en'}})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data&&data[0]){
+        var lat=parseFloat(data[0].lat).toFixed(5);
+        var lon=parseFloat(data[0].lon).toFixed(5);
+        sv('f_gps',lat+', '+lon);
+        // fetch weather
+        var txDate=fv('f_txDate');
+        fetchWeatherCS(lat,lon,txDate);
+      }
+    }).catch(function(){});
+}
+
+var WX_ICONS={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',73:'🌨',75:'🌨',80:'🌦',81:'🌧',82:'🌩',95:'⛈',96:'⛈',99:'⛈'};
+var WX_DESC={0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Showers',81:'Heavy showers',82:'Violent showers',95:'Thunderstorm',96:'Thunderstorm+hail',99:'Thunderstorm+hail'};
+
+function fetchWeatherCS(lat,lon,txDate){
+  var widget=document.getElementById('csWeatherWidget');
+  widget.textContent='Loading weather…';
+  var today=new Date();
+  var start=new Date(today);start.setDate(today.getDate()-1);
+  var end=new Date(today);end.setDate(today.getDate()+6);
+  var fmt=function(d){return d.toISOString().split('T')[0];};
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+    '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_mean,windspeed_10m_max,winddirection_10m_dominant'+
+    '&timezone=auto&start_date='+fmt(start)+'&end_date='+fmt(end);
+  fetch(url).then(function(r){return r.json();}).then(function(data){
+    var d=data.daily;
+    if(!d){widget.textContent='Weather unavailable.';return;}
+    _wxData=[];
+    var html='<div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;">Source: Open-Meteo &nbsp;·&nbsp; <strong style="color:var(--blue);">TX: '+txDate+'</strong></div>';
+    html+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;">';
+    d.time.forEach(function(dt,i){
+      var isTx=dt===txDate;
+      var code=d.weathercode[i];
+      var icon=WX_ICONS[code]||'🌡';
+      var desc=WX_DESC[code]||'';
+      var dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      var dayLabel=dayNames[new Date(dt).getDay()]+' '+dt;
+      var temp=Math.round(d.temperature_2m_min[i])+'° / '+Math.round(d.temperature_2m_max[i])+'°';
+      _wxData.push({label:dayLabel,date:dt,temp:temp,conditions:desc,rain:d.precipitation_probability_mean[i]+'%',isTx:isTx});
+      html+='<div style="flex-shrink:0;min-width:72px;background:'+(isTx?'var(--blue-light)':'var(--white)')+';border:1px solid '+(isTx?'var(--blue)':'var(--border)')+';border-radius:6px;padding:7px 5px;text-align:center;">';
+      html+='<div style="font-size:0.6rem;color:var(--hint);text-transform:uppercase;letter-spacing:0.04em;">'+dt+'</div>';
+      html+='<div style="font-size:1.3rem;margin:3px 0;">'+icon+'</div>';
+      html+='<div style="font-size:0.75rem;font-weight:600;">'+temp+'</div>';
+      html+='<div style="font-size:0.65rem;color:var(--blue);margin-top:2px;">'+d.precipitation_probability_mean[i]+'%</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+    widget.innerHTML=html;
+  }).catch(function(){widget.textContent='Could not load weather.';});
+}
+
+// ─── COLLECT / RESTORE STATE ──────────────────────────────────────────────────
+function fv(id){var el=document.getElementById(id);return el?el.value:'';}
+function sv(id,v){var el=document.getElementById(id);if(el)el.value=v||'';}
+
+function collectState(){
+  return {
+    showName:fv('f_showName'),txDate:fv('f_txDate'),txTime:fv('f_txTime'),endTime:fv('f_endTime'),
+    network:fv('f_network'),prodCompany:fv('f_prodCompany'),csNotes:fv('f_csNotes'),
+    firstAidOfficer:fv('f_firstAidOfficer'),firstAidPhone:fv('f_firstAidPhone'),
+    hospital:fv('f_hospital'),hospitalPhone:fv('f_hospitalPhone'),
+    police:fv('f_police'),policePhone:fv('f_policePhone'),muster:fv('f_muster'),
+    venueName:fv('f_venueName'),venueAddress:fv('f_venueAddress'),venueSuburb:fv('f_venueSuburb'),
+    venueState:fv('f_venueState'),venuePhone:fv('f_venuePhone'),venueWeb:fv('f_venueWeb'),
+    gps:fv('f_gps'),accessNotes:fv('f_accessNotes'),
+    obMethod:fv('f_obMethod'),obFeeds:fv('f_obFeeds'),returnVision:fv('f_returnVision'),
+    commsNotes:fv('f_commsNotes'),cameraPlot:fv('f_cameraPlot'),
+    invCompany:fv('f_invCompany'),invAddress:fv('f_invAddress'),invEmail:fv('f_invEmail'),
+    invCc:fv('f_invCc'),invPO:fv('f_invPO'),invContact:fv('f_invContact'),invNotes:fv('f_invNotes'),
+    nAccommodation:fv('n_accommodation'),
+    crew:getTableData('crewBody'),
+    network_contacts:getTableData('networkBody'),
+    wxData:_wxData,
+    schedule:getScheduleData(),
+    hotels:getHotelData(),
+    plotDataUrl:_plotDataUrl,
+    logoDataUrl:_logoDataUrl
+  };
+}
+
+function restoreState(s){
+  if(!s)return;
+  sv('f_showName',s.showName);sv('f_txDate',s.txDate);sv('f_txTime',s.txTime);sv('f_endTime',s.endTime);
+  sv('f_network',s.network);sv('f_prodCompany',s.prodCompany);sv('f_csNotes',s.csNotes);
+  sv('f_firstAidOfficer',s.firstAidOfficer);sv('f_firstAidPhone',s.firstAidPhone);
+  sv('f_hospital',s.hospital);sv('f_hospitalPhone',s.hospitalPhone);
+  sv('f_police',s.police);sv('f_policePhone',s.policePhone);sv('f_muster',s.muster);
+  sv('f_venueName',s.venueName);sv('f_venueAddress',s.venueAddress);sv('f_venueSuburb',s.venueSuburb);
+  sv('f_venueState',s.venueState);sv('f_venuePhone',s.venuePhone);sv('f_venueWeb',s.venueWeb);
+  sv('f_gps',s.gps);sv('f_accessNotes',s.accessNotes);
+  sv('f_obMethod',s.obMethod);sv('f_obFeeds',s.obFeeds);sv('f_returnVision',s.returnVision);
+  sv('f_commsNotes',s.commsNotes);sv('f_cameraPlot',s.cameraPlot);
+  sv('f_invCompany',s.invCompany);sv('f_invAddress',s.invAddress);sv('f_invEmail',s.invEmail);
+  sv('f_invCc',s.invCc);sv('f_invPO',s.invPO);sv('f_invContact',s.invContact);sv('f_invNotes',s.invNotes);
+  sv('n_accommodation',s.nAccommodation);
+  if(s.crew)setTableData('crewBody',s.crew);
+  if(s.network_contacts)setTableData('networkBody',s.network_contacts);
+  if(s.wxData)_wxData=s.wxData;
+  if(s.schedule)setScheduleData(s.schedule);
+  if(s.hotels)setHotelData(s.hotels);
+  if(s.plotDataUrl){
+    _plotDataUrl=s.plotDataUrl;
+    var prev=document.getElementById('plotPreview');
+    prev.src=_plotDataUrl;prev.style.display='block';
+    document.getElementById('plotRemoveBtn').style.display='inline-block';
+    document.getElementById('plotUploadArea').style.display='none';
+  }
+  if(s.logoDataUrl){
+    _logoDataUrl=s.logoDataUrl;
+    var img=document.getElementById('prodLogoImg');
+    img.src=_logoDataUrl;img.style.display='block';
+    document.getElementById('prodLogoBtn').style.display='none';
+    document.getElementById('prodLogoRemoveBtn').style.display='inline-flex';
+  }
+  document.querySelectorAll('textarea').forEach(function(ta){autoResize(ta);});
+}
+
+function clearAll(){
+  var ids=['f_showName','f_txDate','f_txTime','f_endTime','f_network','f_prodCompany','f_csNotes',
+    'f_firstAidOfficer','f_firstAidPhone','f_hospital','f_hospitalPhone','f_police','f_policePhone','f_muster',
+    'f_venueName','f_venueAddress','f_venueSuburb','f_venueState','f_venuePhone','f_venueWeb','f_gps','f_accessNotes',
+    'f_obMethod','f_obFeeds','f_returnVision','f_commsNotes','f_cameraPlot',
+    'f_invCompany','f_invAddress','f_invEmail','f_invCc','f_invPO','f_invContact','f_invNotes','n_accommodation'];
+  ids.forEach(function(id){sv(id,'');});
+  document.getElementById('crewBody').innerHTML='';
+  document.getElementById('networkBody').innerHTML='';
+  _wxData=[];
+  document.getElementById('scheduleDays').innerHTML='';_dayCounter=0;
+  document.getElementById('hotelBlocks').innerHTML='';_hotelCounter=0;
+  removePlot();
+  _logoDataUrl=null;
+  document.getElementById('prodLogoImg').style.display='none';
+  document.getElementById('prodLogoImg').src='';
+  document.getElementById('prodLogoBtn').style.display='inline-flex';
+  document.getElementById('prodLogoRemoveBtn').style.display='none';
+}
+
+// ─── SAVE / LOAD ──────────────────────────────────────────────────────────────
+function saveCallSheet(silent){
+  var name=document.getElementById('saveName').value.trim()||'Untitled Call Sheet';
+  if(!_currentId)_currentId='cs_'+Date.now();
+  var obj={id:_currentId,name:name,savedAt:new Date().toISOString(),state:collectState()};
+  try{localStorage.setItem(_currentId,JSON.stringify(obj));}catch(e){if(!silent)alert('Storage full.');}
+  if(!silent)renderSaved(_currentId);
+}
+function getAllSaved(){
+  var items=[];
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k&&k.startsWith('cs_')){
+      try{var o=JSON.parse(localStorage.getItem(k));if(o&&o.id)items.push(o);}catch(e){}
+    }
+  }
+  items.sort(function(a,b){return b.savedAt.localeCompare(a.savedAt);});
+  return items;
+}
+function renderSaved(activeId){
+  var list=document.getElementById('loaderList');
+  var items=getAllSaved();
+  if(!items.length){list.innerHTML='<div style="font-size:0.82rem;color:var(--hint);padding:6px 0;">No saved call sheets yet.</div>';return;}
+  list.innerHTML='';
+  items.forEach(function(o){
+    var div=document.createElement('div');
+    div.className='saved-row'+(o.id===activeId?' active':'');
+    var dt=new Date(o.savedAt);
+    div.innerHTML='<div class="saved-info"><div class="saved-name">'+escHtml(o.name)+'</div><div class="saved-meta">'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+' &nbsp;·&nbsp; ID: '+o.id+'</div></div>'+
+      '<div class="saved-actions"><button class="saved-btn load" onclick="loadSaved(\''+o.id+'\')">Load</button><button class="saved-btn del" onclick="deleteSaved(\''+o.id+'\')">Delete</button></div>';
+    list.appendChild(div);
+  });
+}
+function loadSaved(id){
+  try{
+    var o=JSON.parse(localStorage.getItem(id));
+    if(!o||!o.state)throw new Error();
+    if(!confirm('Load "'+o.name+'"? This replaces the current call sheet.'))return;
+    clearAll();restoreState(o.state);
+    _currentId=id;
+    document.getElementById('saveName').value=o.name||'';
+    showUI();
+    renderSaved(id);
+    document.getElementById('loaderList').style.display='none';
+    window.scrollTo({top:0,behavior:'smooth'});
+    showBanner('Loaded: '+o.name);
+  }catch(e){alert('Could not load that call sheet.');}
+}
+function deleteSaved(id){
+  if(!confirm('Delete this call sheet? This cannot be undone.'))return;
+  localStorage.removeItem(id);
+  if(_currentId===id){_currentId=null;}
+  renderSaved(_currentId);
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ─── NEW / LOADER TOGGLE ──────────────────────────────────────────────────────
+function newCallSheet(){
+  if(_currentId&&!confirm('Start a new call sheet? Unsaved changes will be lost.'))return;
+  clearAll();
+  _currentId='cs_'+Date.now();
+  showUI();
+  document.getElementById('loaderList').style.display='none';
+  addCrewRow('crewBody');
+  addCrewRow('networkBody');
+  addScheduleDay();
+  addHotelBlock();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggleImportMenu(){
+  var m=document.getElementById('importMenu');
+  m.style.display=m.style.display==='none'?'block':'none';
+}
+function toggleLoader(){
+  var list=document.getElementById('loaderList');
+  var btn=document.getElementById('btnLoadCS');
+  if(list.style.display==='none'){
+    list.style.display='block';
+    renderSaved(_currentId);
+    btn.classList.add('active');
+  } else {
+    list.style.display='none';
+    btn.classList.remove('active');
+  }
+}
+function showUI(){
+  // Save and action panels are always visible — nothing to do
+}
+
+// ─── IMPORT SURVEY ────────────────────────────────────────────────────────────
+function importSurvey(inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  inp.value='';
+  if(file.name.endsWith('.zip')){
+    // Try JSZip
+    JSZip.loadAsync(file).then(function(zip){
+      var jf=zip.file('survey.json');
+      if(!jf){alert('No survey.json found in ZIP.');return;}
+      jf.async('string').then(function(text){parseSurveyJSON(text);});
+    }).catch(function(){alert('Could not read ZIP.');});
+  } else {
+    var r=new FileReader();
+    r.onload=function(e){parseSurveyJSON(e.target.result);};
+    r.readAsText(file);
+  }
+}
+function parseSurveyJSON(text){
+  try{
+    var data=JSON.parse(text);
+    var s=data.state||data;
+    // Map survey fields to call sheet
+    var mapped=0;
+    if(s.f_venueName!==undefined){sv('f_venueName',s.f_venueName||'');mapped++;}
+    if(s.f_address!==undefined){sv('f_venueAddress',s.f_address||'');mapped++;}
+    if(s.f_suburb!==undefined){sv('f_venueSuburb',s.f_suburb||'');mapped++;}
+    if(s.f_state!==undefined){sv('f_venueState',s.f_state||'');mapped++;}
+    if(s.f_accessNotes!==undefined){sv('f_accessNotes',s.f_accessNotes||'');mapped++;}
+    if(s.f_gps!==undefined){sv('f_gps',s.f_gps||'');mapped++;}
+    if(s.f_hospital!==undefined){sv('f_hospital',s.f_hospital||'');mapped++;}
+    if(s.f_txDate!==undefined){sv('f_txDate',s.f_txDate||'');mapped++;}
+    if(s.f_prodName!==undefined){sv('f_showName',s.f_prodName||'');mapped++;}
+
+    showBanner('Survey imported — '+mapped+' fields mapped to call sheet.');
+    showUI();
+    if(!_currentId)_currentId='cs_'+Date.now();
+  }catch(e){alert('Could not parse survey file.');}
+}
+
+// ─── IMPORT / EXPORT CALL SHEET ───────────────────────────────────────────────
+function exportCallSheet(){
+  var name=document.getElementById('saveName').value.trim()||'callsheet';
+  var obj={id:_currentId,name:name,savedAt:new Date().toISOString(),state:collectState()};
+  var blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=name.replace(/[^a-z0-9]+/gi,'_')+'.json';a.click();
+}
+function importCallSheet(inp){
+  if(!inp.files||!inp.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(!data.state)throw new Error();
+      if(!confirm('Load "'+data.name+'"? This replaces the current call sheet.'))return;
+      clearAll();restoreState(data.state);
+      _currentId=data.id||('cs_'+Date.now());
+      document.getElementById('saveName').value=data.name||'';
+      showUI();
+      showBanner('Imported: '+data.name);
+    }catch(err){alert('Could not read call sheet file.');}
+  };
+  r.readAsText(inp.files[0]);
+  inp.value='';
+}
+
+// ─── PRINT / REPORT ──────────────────────────────────────────────────────────
+function printReport(){window.print();}
+
+function generateReport(){
+  var s=collectState();
+  var name=document.getElementById('saveName').value||s.showName||'Call Sheet';
+  function esc(v){return (v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function nl(v){return esc(v||'').replace(/\n/g,'<br>');}
+
+  // ── HELPERS ──────────────────────────────────────────────────────────────────
+  var B='border:1px solid #ccd3e0;';
+  var BT='border-top:none;';
+
+  function secHdr(title){
+    return '<table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;border-collapse:collapse;">'+
+      '<tr><td style="background:#1a3a6b;color:#fff;padding:7px 14px;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;'+B+'">'+title+'</td></tr></table>';
+  }
+  function dataTable(cols,rows){
+    var t='<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:10px;">';
+    t+='<thead><tr>'+cols.map(function(c){
+      return '<th style="'+B+'padding:6px 10px;text-align:left;font-weight:700;font-size:9px;background:#e8edf5;letter-spacing:0.08em;">'+c+'</th>';
+    }).join('')+'</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      t+='<tr>'+(Array.isArray(r)?r:Object.values(r)).map(function(v){
+        return '<td style="'+B+'padding:6px 10px;vertical-align:top;'+(i%2===1?'background:#f7f9fc;':'')+'font-size:10px;">'+esc(v||'')+'</td>';
+      }).join('')+'</tr>';
+    });
+    t+='</tbody></table>';
+    return t;
+  }
+
+  // ── WEATHER: day before TX, TX day, day after TX ──────────────────────────
+  var wxCols=[];
+  if(s.wxData&&s.wxData.length&&s.txDate){
+    var txIdx=-1;
+    s.wxData.forEach(function(w,i){if(w.date===s.txDate)txIdx=i;});
+    if(txIdx===-1&&s.wxData.length)txIdx=0;
+    [-1,0,1].forEach(function(offset){
+      var w=s.wxData[txIdx+offset];
+      if(w)wxCols.push(w);
+    });
+    if(!wxCols.length)wxCols=s.wxData.slice(0,3);
+  }
+
+  // ── SCHEDULE ─────────────────────────────────────────────────────────────
+  var schedHtml='';
+  if(s.schedule&&s.schedule.length){
+    schedHtml=s.schedule.map(function(day){
+      var rows=day.blocks.map(function(b){
+        return '<tr>'+
+          '<td style="'+B+'padding:6px 10px;font-weight:700;white-space:nowrap;width:70px;vertical-align:top;font-size:10px;">'+esc(b.time)+'</td>'+
+          '<td style="'+B+'padding:6px 10px;font-size:10px;line-height:1.5;">'+nl(b.desc)+'</td>'+
+        '</tr>';
+      }).join('');
+      return '<div style="margin-top:12px;">'+
+        '<div style="background:#e8edf5;'+B+'padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#1a3a6b;">'+esc(day.label)+'</div>'+
+        (rows?'<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-top:none;">'+rows+'</table>':'')+'</div>';
+    }).join('');
+  }
+
+  // ── ACCOMMODATION ─────────────────────────────────────────────────────────
+  var allGuests=[];
+  var hotelDetailsHtml='';
+  s.hotels.forEach(function(h){
+    if(!h.name)return;
+    hotelDetailsHtml+='<div style="text-align:center;margin:16px 0 8px;">'+
+      '<div style="font-size:11px;font-weight:700;">'+esc(h.name)+'</div>'+
+      (h.address?'<div style="font-size:10px;color:#444;margin-top:2px;">'+esc(h.address)+'</div>':'')+
+      (h.phone?'<div style="font-size:10px;color:#444;">Phone: '+esc(h.phone)+'</div>':'')+
+      (h.website?'<div style="font-size:10px;"><a href="'+esc(h.website)+'" style="color:#1a3a6b;">'+esc(h.website)+'</a></div>':'')+
+      (h.mapLink?'<div style="font-size:10px;"><strong>Map:</strong> <a href="'+esc(h.mapLink)+'" style="color:#1a3a6b;">'+esc(h.mapLink)+'</a></div>':'')+
+    '</div>';
+    h.guests.forEach(function(g){
+      if(g.name)allGuests.push([g.name,h.name,g.checkin,g.checkout]);
+    });
+  });
+
+  // ── BUILD HTML ────────────────────────────────────────────────────────────
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(name)+'</title>';
+  html+='<style>';
+  html+='*{box-sizing:border-box;margin:0;padding:0;}';
+  html+='body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:10px;line-height:1.5;padding:24px 28px;}';
+  html+='@media print{';
+  html+='@page{size:A4;margin:14mm 14mm 18mm 14mm;}';
+  html+='body{padding:0;}';
+  html+='@page{@bottom-center{content:"'+esc(s.showName||name)+' \2013 " counter(page) " of " counter(pages);font-family:Arial,Helvetica,sans-serif;font-size:8pt;color:#888;}}';
+  html+='}';
+  html+='.print-bar{position:fixed;top:0;left:0;right:0;background:#1a3a6b;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,0.2);}';
+  html+='.print-bar-title{color:#fff;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.8;}';
+  html+='.print-btn{background:#fff;color:#1a3a6b;border:none;padding:8px 22px;border-radius:5px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}';
+  html+='.print-btn:hover{background:#e8edf5;}';
+  html+='body{padding-top:52px;}';
+  html+='@media print{.print-bar{display:none!important;}body{padding-top:0!important;}}';
+  html+='</style></head><body>';
+  html+='<div class="print-bar"><span class="print-bar-title">Ready to Deploy to Crew</span><button class="print-btn" onclick="window.print()">&#128438; Print / Save as PDF</button></div>';
+
+  // PAGE 1: HEADER
+  var logoHtml=s.logoDataUrl?'<img src="'+s.logoDataUrl+'" style="max-height:70px;max-width:200px;object-fit:contain;display:block;">':'';
+  var addrHtml='';
+  if(s.invAddress)addrHtml='<div style="font-size:9px;color:#444;text-align:center;line-height:1.8;margin-bottom:20px;">'+nl(s.invAddress)+'</div>';
+
+  if(logoHtml){
+    html+='<div style="text-align:center;margin-bottom:10px;">'+logoHtml+'</div>';
+  }
+  if(addrHtml)html+=addrHtml;
+
+  // TITLE BOX
+  html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+'background:#eef2f8;margin-bottom:18px;">'+
+    '<tr><td style="padding:16px;text-align:center;">'+
+      '<div style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-decoration:underline;margin-bottom:8px;">CALL SHEET</div>'+
+      '<div style="font-size:12px;font-weight:700;margin-bottom:4px;">'+esc(s.showName||'')+'</div>'+
+      (s.txDate?'<div style="font-size:11px;font-weight:700;margin-bottom:2px;">'+esc(s.txDate)+'</div>':'')+
+      (s.venueName?'<div style="font-size:11px;font-weight:700;margin-bottom:2px;">'+esc(s.venueName)+(s.venueSuburb?', '+esc(s.venueSuburb):'')+(s.venueState?', '+esc(s.venueState):'')+'</div>':'')+
+      ((s.txTime||s.endTime)?'<div style="font-size:11px;font-weight:700;">'+(s.txTime?esc(s.txTime):'')+(s.endTime?' \u2013 '+esc(s.endTime):'')+(s.txTime?' AEDT':'')+'</div>':'')+
+    '</td></tr></table>';
+
+  // IMPORTANT INFORMATION
+  if(s.csNotes||s.firstAidOfficer){
+    html+=secHdr('IMPORTANT INFORMATION');
+    html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+BT+'"><tr><td style="padding:12px 14px;font-size:10px;line-height:1.8;">';
+    if(s.firstAidOfficer)html+='<div style="font-weight:700;margin-bottom:6px;"><strong>'+esc(s.firstAidOfficer)+'</strong> is the First Aid Officer on this OB.</div>';
+    if(s.csNotes)html+='<div style="font-weight:700;">'+nl(s.csNotes)+'</div>';
+    html+='</td></tr></table>';
+  }
+
+  // WEATHER — 3-column side by side
+  if(wxCols.length){
+    html+=secHdr('WEATHER');
+    html+='<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;'+B+BT+'">';
+    html+='<thead><tr>'+wxCols.map(function(w){
+      var isTx=w.date===s.txDate;
+      return '<th style="'+B+'padding:8px 10px;text-align:center;background:'+(isTx?'#d8e4f0':'#e8edf5')+';font-size:10px;font-weight:700;width:'+(100/wxCols.length)+'%;">'+esc(w.label)+'</th>';
+    }).join('')+'</tr></thead>';
+    html+='<tbody><tr>'+wxCols.map(function(w){
+      return '<td style="'+B+'padding:12px 10px;vertical-align:top;font-size:10px;line-height:1.6;width:'+(100/wxCols.length)+'%;">'+
+        '<div style="margin-bottom:6px;"><strong>'+esc(w.temp)+'</strong></div>'+
+        '<div style="margin-bottom:8px;">'+esc(w.conditions)+'</div>'+
+        '<div style="color:#555;">'+esc(w.rain)+' chance of rain</div>'+
+      '</td>';
+    }).join('')+'</tr></tbody></table>';
+  }
+
+  // PRODUCTION CREW
+  var crewRows=s.crew.filter(function(r){return r.name||r.role;}).map(function(r){return [r.role,r.name,r.email,r.phone];});
+  if(crewRows.length){
+    html+=secHdr('PRODUCTION CREW ON LOCATION');
+    html+=dataTable(['ROLE','NAME','EMAIL','PHONE'],crewRows);
+  }
+
+  // NETWORK / BASE CONTACTS
+  var netRows=s.network_contacts.filter(function(r){return r.name||r.role;}).map(function(r){return [r.role,r.name,r.email,r.phone];});
+  if(netRows.length){
+    html+=secHdr('NETWORK / BASE CONTACTS');
+    html+=dataTable(['ROLE','NAME','EMAIL','PHONE'],netRows);
+  }
+
+  // EMERGENCY CONTACTS — hospital & police side by side
+  if(s.firstAidOfficer||s.hospital||s.police||s.muster){
+    html+=secHdr('EMERGENCY CONTACTS');
+    html+='<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;'+B+BT+'">';
+    html+='<tr><td colspan="2" style="'+B+'padding:8px 12px;background:#fdf0f0;font-weight:700;color:#c0392b;font-size:10px;letter-spacing:0.04em;">IN THE EVENT OF AN EMERGENCY \u2013 DIAL 000</td></tr>';
+    if(s.firstAidOfficer)html+='<tr><td colspan="2" style="'+B+'padding:7px 12px;font-size:10px;"><strong>First Aid Officer:</strong> '+esc(s.firstAidOfficer)+(s.firstAidPhone?' &nbsp; PH: '+esc(s.firstAidPhone):'')+'</td></tr>';
+    if(s.hospital||s.police){
+      html+='<tr>';
+      html+='<td style="'+B+'padding:10px 12px;vertical-align:top;width:50%;font-size:10px;">';
+      if(s.hospital){html+='<div style="font-weight:700;margin-bottom:4px;">HOSPITAL</div><div>'+nl(s.hospital)+'</div>'+(s.hospitalPhone?'<div>PH: '+esc(s.hospitalPhone)+'</div>':'');}
+      html+='</td>';
+      html+='<td style="'+B+'padding:10px 12px;vertical-align:top;width:50%;font-size:10px;">';
+      if(s.police){html+='<div style="font-weight:700;margin-bottom:4px;">POLICE</div><div>'+nl(s.police)+'</div>'+(s.policePhone?'<div>PH: '+esc(s.policePhone)+'</div>':'');}
+      html+='</td></tr>';
+    }
+    if(s.muster)html+='<tr><td colspan="2" style="'+B+'padding:7px 12px;font-size:10px;"><strong>Muster Point:</strong> '+esc(s.muster)+'</td></tr>';
+    html+='</table>';
+  }
+
+  // LOCATION
+  if(s.venueName){
+    html+=secHdr('LOCATION');
+    html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+BT+'"><tr><td style="padding:14px;text-align:center;font-size:10px;line-height:1.8;">';
+    html+='<div style="font-size:11px;font-weight:700;">'+esc(s.venueName)+'</div>';
+    if(s.venueAddress)html+='<div>'+esc(s.venueAddress)+(s.venueSuburb?', '+esc(s.venueSuburb):'')+(s.venueState?' '+esc(s.venueState):'')+'</div>';
+    if(s.venuePhone)html+='<div>PH: '+esc(s.venuePhone)+'</div>';
+    if(s.venueWeb)html+='<div><a href="'+esc(s.venueWeb)+'" style="color:#1a3a6b;">'+esc(s.venueWeb)+'</a></div>';
+    html+='</td></tr></table>';
+    if(s.accessNotes){
+      html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+'border-top:none;"><tr><td style="padding:10px 14px;font-size:10px;line-height:1.6;">';
+      html+='<div style="font-weight:700;margin-bottom:4px;">Access &amp; Parking:</div><div>'+nl(s.accessNotes)+'</div>';
+      html+='</td></tr></table>';
+    }
+  }
+
+  // SCHEDULE
+  if(schedHtml){
+    html+=secHdr('SCHEDULE');
+    html+='<div style="'+B+BT+'padding:0 0 8px;">'+schedHtml+'</div>';
+  }
+
+  // OB NOTES
+  if(s.obMethod||s.obFeeds||s.returnVision||s.commsNotes||s.cameraPlot||s.plotDataUrl){
+    html+=secHdr('OB NOTES');
+    html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+BT+'"><tr><td style="padding:14px;font-size:10px;line-height:1.8;">';
+    if(s.cameraPlot){
+      html+='<div style="font-weight:700;text-align:center;margin-bottom:4px;">Camera Plot</div>';
+    }
+    if(s.plotDataUrl){
+      html+='<div style="text-align:center;margin-bottom:12px;'+B+'padding:6px;">'+
+        '<img src="'+s.plotDataUrl+'" style="max-width:100%;display:block;margin:0 auto;">'+
+      '</div>';
+    }
+    if(s.cameraPlot)html+='<div style="margin-bottom:10px;">'+nl(s.cameraPlot)+'</div>';
+    if(s.obMethod)html+='<div style="margin-bottom:6px;">'+nl(s.obMethod)+'</div>';
+    if(s.commsNotes)html+='<div style="margin-bottom:6px;">'+nl(s.commsNotes)+'</div>';
+    if(s.obFeeds){
+      html+='<div style="margin-bottom:4px;font-weight:700;">Main and Backup OB feeds will be:</div>';
+      html+='<div style="margin-bottom:6px;">'+nl(s.obFeeds)+'</div>';
+    }
+    if(s.returnVision){
+      html+='<div style="margin-bottom:4px;">'+nl(s.returnVision)+'</div>';
+    }
+    html+='</td></tr></table>';
+  }
+
+  // ACCOMMODATION
+  var hasAccom=s.hotels.some(function(h){return h.name;});
+  if(hasAccom){
+    html+=secHdr('ACCOMMODATION');
+    html+='<div style="'+B+BT+'">';
+    html+=hotelDetailsHtml;
+    if(allGuests.length){
+      html+=dataTable(['NAME','HOTEL','CHECK IN','CHECK OUT'],allGuests);
+    }
+    if(s.nAccommodation)html+='<div style="padding:10px 12px;font-style:italic;font-size:10px;color:#555;border-top:1px solid #ccd3e0;margin-top:4px;"><strong>'+nl(s.nAccommodation)+'</strong></div>';
+    html+='</div>';
+  }
+
+  // INVOICING
+  if(s.invCompany){
+    html+=secHdr('INVOICING');
+    html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+BT+'"><tr><td style="padding:14px;font-size:10px;line-height:1.9;">';
+    if(s.invNotes)html+='<div style="margin-bottom:10px;">'+nl(s.invNotes)+'</div>';
+    html+='<div style="margin-bottom:8px;">Address your invoice as below:<br>';
+    if(s.invAddress)html+='<strong>'+nl(s.invAddress)+'</strong>';
+    html+='</div>';
+    if(s.invEmail)html+='<div>Email your invoice to: <strong>'+esc(s.invEmail)+'</strong>'+(s.invCc?'<br>cc '+esc(s.invCc):'')+'</div>';
+    if(s.invPO)html+='<div style="margin-top:6px;">Purchase Order Reference: <strong>'+esc(s.invPO)+'</strong></div>';
+    if(s.invContact)html+='<div style="margin-top:6px;">Finance Contact: <strong>'+esc(s.invContact)+'</strong></div>';
+    html+='</td></tr></table>';
+  }
+
+  html+='</body></html>';
+  var w=window.open('','_blank');
+  if(w){w.document.open();w.document.write(html);w.document.close();}
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  document.addEventListener('input',function(e){
+    if(e.target.tagName==='TEXTAREA'){autoResize(e.target);}
+  });
+  renderSaved(null);
+});
+</script>
+</body>
+</html>
