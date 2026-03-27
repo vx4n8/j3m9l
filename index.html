@@ -574,13 +574,9 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
   <div class="save-section" id="saveSection">
     <div class="section-header"><div class="section-num" style="font-size:1rem;">&#9733;</div><div class="section-title">Save</div></div>
     <div class="section-body">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-        <div class="field" style="flex:1;min-width:200px;"><label>Call Sheet Name</label><input type="text" id="saveName" placeholder="e.g. PML Port Macquarie 29 Mar" oninput="triggerAutosave()"></div>
-        <button class="btn-blue" style="padding:10px 24px;font-size:0.9rem;white-space:nowrap;flex-shrink:0;" onclick="saveCallSheet()">Save Call Sheet</button>
-      </div>
 
       <!-- PERMISSIONS PANEL -->
-      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;cursor:pointer;user-select:none;" onclick="togglePermissions()">
           <div style="display:flex;align-items:center;gap:8px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
@@ -613,6 +609,11 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
             <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:14px;height:14px;background:var(--field-bg);border:1px solid var(--border);border-radius:3px;"></span> No Access</span>
           </div>
         </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="field" style="flex:1;min-width:200px;"><label>Call Sheet Name</label><input type="text" id="saveName" placeholder="e.g. PML Port Macquarie 29 Mar" oninput="triggerAutosave()"></div>
+        <button class="btn-blue" style="padding:10px 24px;font-size:0.9rem;white-space:nowrap;flex-shrink:0;" onclick="saveCallSheet()">Save Call Sheet</button>
       </div>
 
     </div>
