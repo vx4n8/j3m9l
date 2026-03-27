@@ -586,7 +586,7 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             <span style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);">Module Access &amp; Permissions</span>
           </div>
-          <span id="permChevron" style="font-size:0.75rem;color:var(--hint);">&#9660;</span>
+          <span id="permChevron" style="font-size:0.75rem;color:var(--hint);">&#9654;</span>
         </div>
         <div id="permissionsPanel" style="display:none;">
           <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px;">Set who can view or edit each module. The Production Manager has full access at all times.</div>
@@ -1461,7 +1461,7 @@ function togglePermissions(){
   var chev=document.getElementById('permChevron');
   var open=panel.style.display==='none';
   panel.style.display=open?'block':'none';
-  chev.innerHTML=open?'&#9650;':'&#9660;';
+  chev.innerHTML=open?'&#9660;':'&#9654;';
   if(open&&document.getElementById('permTableBody').children.length===0){
     buildPermissionsTable();
   }
