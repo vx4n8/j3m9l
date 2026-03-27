@@ -1,0 +1,22 @@
+{
+  "name": "REKON Call Sheet",
+  "short_name": "Call Sheet",
+  "description": "Live TV Call Sheet by Patrice Roblin",
+  "start_url": "/j3m9l/callsheet-5.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0099FF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230099FF'/><rect x='48' y='40' width='96' height='112' rx='6' fill='none' stroke='%23ffffff' stroke-width='6'/><line x1='64' y1='80' x2='128' y2='80' stroke='%23ffffff' stroke-width='5' opacity='0.8'/><line x1='64' y1='100' x2='128' y2='100' stroke='%23ffffff' stroke-width='5' opacity='0.8'/><line x1='64' y1='120' x2='100' y2='120' stroke='%23ffffff' stroke-width='5' opacity='0.8'/><rect x='72' y='28' width='48' height='22' rx='4' fill='%230099FF' stroke='%23ffffff' stroke-width='4'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230099FF'/><rect x='128' y='106' width='256' height='300' rx='10' fill='none' stroke='%23ffffff' stroke-width='14'/><line x1='168' y1='210' x2='344' y2='210' stroke='%23ffffff' stroke-width='12' opacity='0.8'/><line x1='168' y1='260' x2='344' y2='260' stroke='%23ffffff' stroke-width='12' opacity='0.8'/><line x1='168' y1='310' x2='270' y2='310' stroke='%23ffffff' stroke-width='12' opacity='0.8'/><rect x='192' y='76' width='128' height='56' rx='8' fill='%230099FF' stroke='%23ffffff' stroke-width='10'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
