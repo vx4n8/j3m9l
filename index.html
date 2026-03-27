@@ -1320,9 +1320,32 @@ function parseSurveyJSON(text){
 function exportCallSheet(){
   var name=document.getElementById('saveName').value.trim()||'callsheet';
   var obj={id:_currentId,name:name,savedAt:new Date().toISOString(),state:collectState()};
-  var blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=name.replace(/[^a-z0-9]+/gi,'_')+'.json';a.click();
+  var json=JSON.stringify(obj,null,2);
+  var filename=name.replace(/[^a-z0-9]+/gi,'_')+'.json';
+  // Safari iOS compatible export
+  var isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(isIOS||isSafari){
+    // Open in new window so user can use Share sheet to save
+    var w=window.open('','_blank');
+    if(w){
+      w.document.open();
+      w.document.write('<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+filename+'</title></head><body style="font-family:sans-serif;padding:20px;background:#f5f7fa;">'+
+        '<div style="background:#fff;border-radius:8px;padding:20px;max-width:500px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,0.1);">'+
+        '<div style="font-size:1rem;font-weight:700;color:#0099FF;margin-bottom:8px;">&#128462; '+filename+'</div>'+
+        '<div style="font-size:0.85rem;color:#666;margin-bottom:16px;">Tap the <strong>Share</strong> button in your browser then <strong>Save to Files</strong> to save this call sheet.</div>'+
+        '<div style="font-size:0.75rem;color:#888;margin-bottom:16px;">Or copy the filename above and use it when saving.</div>'+
+        '<hr style="border:none;border-top:1px solid #e0e8f0;margin:16px 0;">'+
+        '<pre style="font-size:0.7rem;color:#444;white-space:pre-wrap;word-break:break-all;background:#f0f4f8;padding:12px;border-radius:6px;overflow:auto;max-height:300px;">'+json.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>'+
+        '<button onclick="window.close()" style="margin-top:16px;padding:10px 24px;background:#0099FF;color:#fff;border:none;border-radius:6px;font-size:0.9rem;font-weight:600;cursor:pointer;">&#8592; Back to Call Sheet</button>'+
+        '</div></body></html>');
+      w.document.close();
+    }
+  } else {
+    var blob=new Blob([json],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=filename;a.click();
+  }
 }
 // ─── SELECTIVE CALL SHEET IMPORT ─────────────────────────────────────────────
 var _pendingCSImport = null;
@@ -1580,7 +1603,7 @@ function generateReport(){
   html+='body{padding-top:52px;}';
   html+='@media print{.print-bar{display:none!important;}body{padding-top:0!important;}}';
   html+='</style></head><body>';
-  html+='<div class="print-bar"><span class="print-bar-title">Ready to Deploy to Crew</span><button class="print-btn" onclick="window.print()">&#128438; Print / Save as PDF</button></div>';
+  html+='<div class="print-bar"><span class="print-bar-title">Ready to Deploy to Crew</span><div style="display:flex;gap:10px;"><button class="print-btn" onclick="window.print()">&#128438; Print / Save as PDF</button><button class="print-btn" style="background:#e8edf5;" onclick="window.close()">&#8592; Back to Call Sheet</button></div></div>';
 
   // PAGE 1: HEADER
   var logoHtml=s.logoDataUrl?'<img src="'+s.logoDataUrl+'" style="max-height:70px;max-width:200px;object-fit:contain;display:block;">':'';
