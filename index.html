@@ -112,16 +112,21 @@ select option{background:var(--white);color:var(--text);}
 .schedule-day-header{background:var(--blue);color:var(--white);padding:9px 14px;display:flex;align-items:center;gap:10px;justify-content:space-between;}
 .schedule-day-title{font-size:0.82rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
 .schedule-day-body{padding:10px 14px;}
-.time-block{display:grid;grid-template-columns:120px 1fr auto;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--border);}
+.time-block{display:grid;grid-template-columns:154px 1fr 130px auto;gap:8px;align-items:start;padding:7px 0;border-bottom:1px solid var(--border);}
 .time-block:last-child{border-bottom:none;}
-.time-block input[type=time]{background:var(--field-bg);border:1px solid var(--field-border);border-radius:4px;padding:6px 8px;font-size:0.85rem;font-family:inherit;color:var(--text);}
+.time-block-left{display:flex;flex-direction:column;gap:4px;}
+.time-block-type{background:var(--field-bg);border:1px solid var(--field-border);border-radius:4px;padding:5px 7px;font-size:0.82rem;font-family:inherit;color:var(--text);width:100%;}
+.time-block-time{background:var(--field-bg);border:1px solid var(--field-border);border-radius:4px;padding:5px 8px;font-size:0.82rem;font-family:inherit;color:var(--text);width:100%;}
 .time-block textarea{min-height:42px;font-size:0.85rem;}
+.time-block-bold{display:flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--muted);cursor:pointer;margin-top:2px;user-select:none;}
+.time-block-bold input{accent-color:var(--blue);width:13px;height:13px;}
 .time-block-del{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger);border-radius:4px;width:26px;height:26px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:inherit;}
 .time-block-del:hover{background:#f9d5d5;}
 .add-block-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:4px;border:1px dashed var(--blue-mid);background:var(--blue-light);color:var(--blue);font-size:0.76rem;font-weight:600;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;}
 .add-block-btn:hover{background:var(--blue-mid);}
 .del-day-btn{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;border-radius:4px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:0.07em;text-transform:uppercase;}
 .del-day-btn:hover{background:rgba(255,80,80,0.4);}
+@media(max-width:600px){.time-block{grid-template-columns:1fr auto;}.time-block-left,.time-block-contact{grid-column:1/-1;}}
 /* OB NOTES */
 .ob-plot-upload{border:2px dashed var(--border);border-radius:6px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s;color:var(--hint);font-size:0.85rem;}
 .ob-plot-upload:hover{border-color:var(--blue);color:var(--blue);}
@@ -220,16 +225,64 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
       <input type="file" id="csImportInput" accept=".json" style="display:none" onchange="importCallSheet(this)">
     </div>
     <div id="importMenu" style="display:none;margin-top:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--white);">
-      <button onclick="document.getElementById('surveyImportInput').click();document.getElementById('importMenu').style.display='none';" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--border);font-size:0.85rem;cursor:pointer;font-family:inherit;color:var(--text);">
+      <button onclick="document.getElementById('surveyImportInput').click();document.getElementById('importMenu').style.display='none';" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--border);font-size:0.85rem;cursor:pointer;font-family:inherit;color:var(--text);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-        Import REKON Survey (ZIP / JSON)
+        <div><div style="font-weight:600;">Import REKON Survey</div><div style="font-size:0.75rem;color:var(--muted);margin-top:1px;">Fills venue, production &amp; contacts from recce ZIP / JSON</div></div>
       </button>
-      <button onclick="document.getElementById('csImportInput').click();document.getElementById('importMenu').style.display='none';" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;font-size:0.85rem;cursor:pointer;font-family:inherit;color:var(--text);">
+      <button onclick="document.getElementById('csImportInput').click();document.getElementById('importMenu').style.display='none';" style="display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;text-align:left;background:transparent;border:none;font-size:0.85rem;cursor:pointer;font-family:inherit;color:var(--text);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Import Call Sheet (JSON)
+        <div><div style="font-weight:600;">Import Previous Call Sheet</div><div style="font-size:0.75rem;color:var(--muted);margin-top:1px;">Pick which sections to carry over — crew, schedule, invoicing…</div></div>
       </button>
     </div>
     <div class="loader-list" id="loaderList" style="display:none;"></div>
+  </div>
+
+  <!-- IMPORT SELECTOR MODAL -->
+  <div id="csImportModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:var(--white);border-radius:10px;max-width:420px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden;">
+      <div style="background:var(--blue);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="color:#fff;font-size:0.85rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Import Previous Call Sheet</div>
+        <button onclick="closeImportModal()" style="background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;line-height:1;padding:0;">×</button>
+      </div>
+      <div style="padding:16px 20px;">
+        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">Select what to carry over. Venue and production details from your recce will not be touched.</div>
+        <div id="csImportFileName" style="font-size:0.78rem;font-weight:600;color:var(--blue);margin-bottom:14px;padding:8px 12px;background:var(--blue-light);border-radius:5px;"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;">
+            <input type="checkbox" id="chk_crew" checked style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;">
+            <div><div style="font-weight:600;font-size:0.85rem;">Crew List</div><div style="font-size:0.72rem;color:var(--muted);">Production crew on location</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;">
+            <input type="checkbox" id="chk_network" checked style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;">
+            <div><div style="font-weight:600;font-size:0.85rem;">Network / Base Contacts</div><div style="font-size:0.72rem;color:var(--muted);">Studio and base team</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;">
+            <input type="checkbox" id="chk_schedule" checked style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;">
+            <div><div style="font-weight:600;font-size:0.85rem;">Schedule</div><div style="font-size:0.72rem;color:var(--muted);">Day structure and time blocks</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;">
+            <input type="checkbox" id="chk_ob" checked style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;">
+            <div><div style="font-weight:600;font-size:0.85rem;">OB Notes</div><div style="font-size:0.72rem;color:var(--muted);">Broadcast method, feeds, comms, camera plot</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;">
+            <input type="checkbox" id="chk_flights" checked style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;">
+            <div><div style="font-weight:600;font-size:0.85rem;">Flights &amp; Hire Cars</div><div style="font-size:0.72rem;color:var(--muted);">Inbound, outbound flights and hire car bookings</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;">
+            <input type="checkbox" id="chk_accom" style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;">
+            <div><div style="font-weight:600;font-size:0.85rem;">Accommodation</div><div style="font-size:0.72rem;color:var(--muted);">Hotels and guest list</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;">
+            <input type="checkbox" id="chk_invoicing" checked style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;">
+            <div><div style="font-weight:600;font-size:0.85rem;">Invoicing</div><div style="font-size:0.72rem;color:var(--muted);">Invoice address, PO, finance contact</div></div>
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button onclick="closeImportModal()" style="padding:9px 20px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          <button onclick="applyCSImport()" style="padding:9px 22px;border-radius:6px;border:none;background:var(--blue);color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">Import Selected</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- IMPORT NOTICE -->
@@ -444,10 +497,63 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
     </div>
   </div>
 
-  <!-- SEC 9: INVOICING -->
+  <!-- SEC 9: FLIGHTS -->
   <div class="section collapsed" id="sec9">
     <div class="section-header collapsible" onclick="toggleSection('sec9')">
       <div class="section-num">9</div>
+      <div class="section-title">Flights</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="sub-label">Inbound</div>
+      <table class="dyn-table" id="flightsInTable">
+        <thead><tr>
+          <th>Name</th><th>Date</th><th>Depart</th><th>Arrive</th><th>Flight #</th><th>Transport from Airport</th><th style="width:32px;"></th>
+        </tr></thead>
+        <tbody id="flightsInBody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addFlightRow('flightsInBody','in')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Inbound Flight
+      </button>
+      <div class="sub-label" style="margin-top:20px;">Outbound</div>
+      <table class="dyn-table" id="flightsOutTable">
+        <thead><tr>
+          <th>Name</th><th>Date</th><th>Depart</th><th>Arrive</th><th>Flight #</th><th>Transport to Airport</th><th style="width:32px;"></th>
+        </tr></thead>
+        <tbody id="flightsOutBody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addFlightRow('flightsOutBody','out')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Outbound Flight
+      </button>
+      <div class="section-notes"><label>Flight Notes</label><textarea id="n_flights" placeholder="e.g. Flights to Port Lincoln are via Dash 8 — contact PM to add baggage…" oninput="autoResize(this);triggerAutosave()"></textarea></div>
+    </div>
+  </div>
+
+  <!-- SEC 10: HIRE CARS -->
+  <div class="section collapsed" id="sec10">
+    <div class="section-header collapsible" onclick="toggleSection('sec10')">
+      <div class="section-num">10</div>
+      <div class="section-title">Hire Cars</div>
+      <span class="collapse-icon">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <table class="dyn-table">
+        <thead><tr>
+          <th>Name</th><th>Company</th><th>Type</th><th>Pick Up</th><th>Drop Off</th><th>Confirmation #</th><th>Passengers</th><th style="width:32px;"></th>
+        </tr></thead>
+        <tbody id="hireCarsBody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addHireCarRow()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Hire Car
+      </button>
+      <div class="section-notes"><label>Hire Car Notes</label><textarea id="n_hirecars" placeholder="Parking, fuel policy, return instructions…" oninput="autoResize(this);triggerAutosave()"></textarea></div>
+    </div>
+  </div>
+
+  <!-- SEC 11: INVOICING -->
+  <div class="section collapsed" id="sec11">
+    <div class="section-header collapsible" onclick="toggleSection('sec11')">
+      <div class="section-num">11</div>
       <div class="section-title">Invoicing</div>
       <span class="collapse-icon">&#9660;</span>
     </div>
@@ -472,6 +578,43 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
         <div class="field" style="flex:1;min-width:200px;"><label>Call Sheet Name</label><input type="text" id="saveName" placeholder="e.g. PML Port Macquarie 29 Mar" oninput="triggerAutosave()"></div>
         <button class="btn-blue" style="padding:10px 24px;font-size:0.9rem;white-space:nowrap;flex-shrink:0;" onclick="saveCallSheet()">Save Call Sheet</button>
       </div>
+
+      <!-- PERMISSIONS PANEL -->
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;cursor:pointer;user-select:none;" onclick="togglePermissions()">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <span style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);">Module Access &amp; Permissions</span>
+          </div>
+          <span id="permChevron" style="font-size:0.75rem;color:var(--hint);">&#9660;</span>
+        </div>
+        <div id="permissionsPanel" style="display:none;">
+          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px;">Set who can view or edit each module. The Production Manager has full access at all times.</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);min-width:140px;">Module</th>
+                  <th style="text-align:center;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);white-space:nowrap;">Exec Producer</th>
+                  <th style="text-align:center;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);white-space:nowrap;">PM Assistant</th>
+                  <th style="text-align:center;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);white-space:nowrap;">Director</th>
+                  <th style="text-align:center;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);white-space:nowrap;">OB Supervisor</th>
+                  <th style="text-align:center;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);white-space:nowrap;">Tech Manager</th>
+                  <th style="text-align:center;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);white-space:nowrap;">Field Producer</th>
+                  <th style="text-align:center;padding:7px 10px;background:var(--field-bg);border:1px solid var(--border);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);white-space:nowrap;">General Crew</th>
+                </tr>
+              </thead>
+              <tbody id="permTableBody"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:16px;font-size:0.72rem;color:var(--muted);">
+            <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:14px;height:14px;background:var(--success-bg);border:1px solid var(--success-border);border-radius:3px;"></span> Edit</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:14px;height:14px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:3px;"></span> View</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:14px;height:14px;background:var(--field-bg);border:1px solid var(--border);border-radius:3px;"></span> No Access</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -492,7 +635,7 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ─── STATE ───────────────────────────────────────────────────────────────────
 var _currentId = null;
 var _autosaveTimer = null;
@@ -502,6 +645,21 @@ var _wxData = [];
 
 // ─── UTILITY ─────────────────────────────────────────────────────────────────
 function autoResize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+
+function fmtAUDate(iso){
+  if(!iso)return '';
+  var parts=iso.split('-');
+  if(parts.length!==3)return iso;
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var d=parseInt(parts[2],10);
+  var m=parseInt(parts[1],10)-1;
+  var y=parts[0];
+  var suffix='th';
+  if(d===1||d===21||d===31)suffix='st';
+  else if(d===2||d===22)suffix='nd';
+  else if(d===3||d===23)suffix='rd';
+  return d+suffix+' '+months[m]+' '+y;
+}
 function toggleSection(id){
   var t=document.getElementById(id);if(!t)return;
   var wasOpen=!t.classList.contains('collapsed');
@@ -624,10 +782,30 @@ function addTimeBlock(blockContId,vals){
   if(!cont)return;
   var div=document.createElement('div');
   div.className='time-block';
-  div.innerHTML='<input type="time" value="'+(vals.time||'')+'" oninput="triggerAutosave()">'+
-    '<textarea placeholder="Activity / description…" oninput="autoResize(this);triggerAutosave()" style="min-height:42px;">'+(vals.desc||'')+'</textarea>'+
+  var timeTypes=['Time','All Day','AM/PM','From','Approx'];
+  var typeOpts=timeTypes.map(function(t){
+    return '<option value="'+t+'"'+(vals.timeType===t?' selected':'')+'>'+t+'</option>';
+  }).join('');
+  var showTime=(vals.timeType==='Time'||vals.timeType===undefined||vals.timeType==='From'||vals.timeType==='Approx');
+  div.innerHTML=
+    '<div class="time-block-left">'+
+      '<select class="time-block-type" onchange="toggleTimeInput(this)" oninput="triggerAutosave()">'+typeOpts+'</select>'+
+      '<input type="time" class="time-block-time" value="'+(vals.time||'')+'" oninput="triggerAutosave()" style="display:'+(showTime?'block':'none')+';">'+
+      '<label class="time-block-bold"><input type="checkbox" '+(vals.bold?'checked':'')+' onchange="triggerAutosave()"> Bold</label>'+
+    '</div>'+
+    '<textarea placeholder="Activity / description…" oninput="autoResize(this);triggerAutosave()" style="min-height:42px;'+(vals.bold?'font-weight:700;':'')+'">'+((vals.desc||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'))+'</textarea>'+
+    '<input type="text" class="time-block-contact" placeholder="Contact" value="'+(vals.contact||'')+'" oninput="triggerAutosave()" style="font-size:0.82rem;">'+
     '<button class="time-block-del" onclick="this.closest(\'.time-block\').remove();triggerAutosave()">×</button>';
   cont.appendChild(div);
+  // Bold checkbox live-updates textarea weight
+  var chk=div.querySelector('.time-block-bold input');
+  var ta=div.querySelector('textarea');
+  chk.addEventListener('change',function(){ta.style.fontWeight=chk.checked?'700':'';});
+}
+function toggleTimeInput(sel){
+  var timeInput=sel.closest('.time-block-left').querySelector('.time-block-time');
+  var showTime=(sel.value==='Time'||sel.value==='From'||sel.value==='Approx');
+  timeInput.style.display=showTime?'block':'none';
 }
 function getScheduleData(){
   var days=[];
@@ -635,9 +813,18 @@ function getScheduleData(){
     var label=day.querySelector('input[type=text]').value;
     var blocks=[];
     day.querySelectorAll('.time-block').forEach(function(bl){
-      var t=bl.querySelector('input[type=time]').value;
-      var d=bl.querySelector('textarea').value;
-      blocks.push({time:t,desc:d});
+      var typeEl=bl.querySelector('.time-block-type');
+      var timeEl=bl.querySelector('.time-block-time');
+      var boldEl=bl.querySelector('.time-block-bold input');
+      var ta=bl.querySelector('textarea');
+      var contactEl=bl.querySelector('.time-block-contact');
+      blocks.push({
+        timeType:typeEl?typeEl.value:'Time',
+        time:timeEl?timeEl.value:'',
+        bold:boldEl?boldEl.checked:false,
+        desc:ta?ta.value:'',
+        contact:contactEl?contactEl.value:''
+      });
     });
     days.push({label:label,blocks:blocks});
   });
@@ -646,6 +833,78 @@ function getScheduleData(){
 function setScheduleData(days){
   document.getElementById('scheduleDays').innerHTML='';_dayCounter=0;
   days.forEach(function(d){addScheduleDay(d);});
+}
+
+// ─── FLIGHTS ──────────────────────────────────────────────────────────────────
+function addFlightRow(bodyId, dir, vals){
+  vals=vals||{};
+  var tb=document.getElementById(bodyId);
+  if(!tb)return;
+  var tr=document.createElement('tr');
+  var transportLabel=dir==='in'?'Transport from Airport':'Transport to Airport';
+  var fields=[
+    {ph:'Full Name',val:vals.name||''},
+    {ph:'e.g. 27 Jul',val:vals.date||''},
+    {ph:'e.g. Sydney @ 0915',val:vals.depart||''},
+    {ph:'e.g. Newcastle @ 1040',val:vals.arrive||''},
+    {ph:'e.g. VA1102',val:vals.flight||''},
+    {ph:'e.g. HIRE CAR',val:vals.transport||''}
+  ];
+  tr.innerHTML=fields.map(function(f){
+    return '<td><input type="text" value="'+f.val.replace(/"/g,'&quot;')+'" placeholder="'+f.ph+'" oninput="triggerAutosave()"></td>';
+  }).join('')+
+  '<td style="text-align:center;"><button class="dyn-row-del" onclick="this.closest(\'tr\').remove();triggerAutosave()">×</button></td>';
+  tb.appendChild(tr);
+}
+function getFlightData(bodyId){
+  var rows=[];
+  var tb=document.getElementById(bodyId);
+  if(!tb)return rows;
+  tb.querySelectorAll('tr').forEach(function(tr){
+    var ins=tr.querySelectorAll('input');
+    rows.push({name:ins[0]?ins[0].value:'',date:ins[1]?ins[1].value:'',depart:ins[2]?ins[2].value:'',arrive:ins[3]?ins[3].value:'',flight:ins[4]?ins[4].value:'',transport:ins[5]?ins[5].value:''});
+  });
+  return rows;
+}
+function setFlightData(bodyId, rows, dir){
+  var tb=document.getElementById(bodyId);
+  if(!tb)return;
+  tb.innerHTML='';
+  (rows||[]).forEach(function(r){addFlightRow(bodyId,dir,r);});
+}
+
+// ─── HIRE CARS ────────────────────────────────────────────────────────────────
+function addHireCarRow(vals){
+  vals=vals||{};
+  var tb=document.getElementById('hireCarsBody');
+  if(!tb)return;
+  var tr=document.createElement('tr');
+  var fields=[
+    {ph:'Name',val:vals.name||''},
+    {ph:'e.g. AVIS',val:vals.company||''},
+    {ph:'e.g. SUV',val:vals.type||''},
+    {ph:'e.g. Upon Arrival',val:vals.pickup||''},
+    {ph:'e.g. Upon Departure',val:vals.dropoff||''},
+    {ph:'Confirmation #',val:vals.confirm||''},
+    {ph:'Passengers',val:vals.passengers||''}
+  ];
+  tr.innerHTML=fields.map(function(f){
+    return '<td><input type="text" value="'+f.val.replace(/"/g,'&quot;')+'" placeholder="'+f.ph+'" oninput="triggerAutosave()"></td>';
+  }).join('')+
+  '<td style="text-align:center;"><button class="dyn-row-del" onclick="this.closest(\'tr\').remove();triggerAutosave()">×</button></td>';
+  tb.appendChild(tr);
+}
+function getHireCarData(){
+  var rows=[];
+  document.getElementById('hireCarsBody').querySelectorAll('tr').forEach(function(tr){
+    var ins=tr.querySelectorAll('input');
+    rows.push({name:ins[0]?ins[0].value:'',company:ins[1]?ins[1].value:'',type:ins[2]?ins[2].value:'',pickup:ins[3]?ins[3].value:'',dropoff:ins[4]?ins[4].value:'',confirm:ins[5]?ins[5].value:'',passengers:ins[6]?ins[6].value:''});
+  });
+  return rows;
+}
+function setHireCarData(rows){
+  document.getElementById('hireCarsBody').innerHTML='';
+  (rows||[]).forEach(function(r){addHireCarRow(r);});
 }
 
 // ─── ACCOMMODATION ────────────────────────────────────────────────────────────
@@ -790,7 +1049,7 @@ function fetchWeatherCS(lat,lon,txDate){
     var d=data.daily;
     if(!d){widget.textContent='Weather unavailable.';return;}
     _wxData=[];
-    var html='<div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;">Source: Open-Meteo &nbsp;·&nbsp; <strong style="color:var(--blue);">TX: '+txDate+'</strong></div>';
+    var html='<div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;">Source: Open-Meteo &nbsp;·&nbsp; <strong style="color:var(--blue);">TX: '+fmtAUDate(txDate)+'</strong></div>';
     html+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;">';
     d.time.forEach(function(dt,i){
       var isTx=dt===txDate;
@@ -798,11 +1057,11 @@ function fetchWeatherCS(lat,lon,txDate){
       var icon=WX_ICONS[code]||'🌡';
       var desc=WX_DESC[code]||'';
       var dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-      var dayLabel=dayNames[new Date(dt).getDay()]+' '+dt;
+      var dayLabel=fmtAUDate(dt);
       var temp=Math.round(d.temperature_2m_min[i])+'° / '+Math.round(d.temperature_2m_max[i])+'°';
       _wxData.push({label:dayLabel,date:dt,temp:temp,conditions:desc,rain:d.precipitation_probability_mean[i]+'%',isTx:isTx});
       html+='<div style="flex-shrink:0;min-width:72px;background:'+(isTx?'var(--blue-light)':'var(--white)')+';border:1px solid '+(isTx?'var(--blue)':'var(--border)')+';border-radius:6px;padding:7px 5px;text-align:center;">';
-      html+='<div style="font-size:0.6rem;color:var(--hint);text-transform:uppercase;letter-spacing:0.04em;">'+dt+'</div>';
+      html+='<div style="font-size:0.6rem;color:var(--hint);text-transform:uppercase;letter-spacing:0.04em;">'+fmtAUDate(dt)+'</div>';
       html+='<div style="font-size:1.3rem;margin:3px 0;">'+icon+'</div>';
       html+='<div style="font-size:0.75rem;font-weight:600;">'+temp+'</div>';
       html+='<div style="font-size:0.65rem;color:var(--blue);margin-top:2px;">'+d.precipitation_probability_mean[i]+'%</div>';
@@ -832,6 +1091,11 @@ function collectState(){
     invCompany:fv('f_invCompany'),invAddress:fv('f_invAddress'),invEmail:fv('f_invEmail'),
     invCc:fv('f_invCc'),invPO:fv('f_invPO'),invContact:fv('f_invContact'),invNotes:fv('f_invNotes'),
     nAccommodation:fv('n_accommodation'),
+    flightsIn:getFlightData('flightsInBody'),
+    flightsOut:getFlightData('flightsOutBody'),
+    nFlights:fv('n_flights'),
+    hireCars:getHireCarData(),
+    nHireCars:fv('n_hirecars'),
     crew:getTableData('crewBody'),
     network_contacts:getTableData('networkBody'),
     wxData:_wxData,
@@ -857,6 +1121,11 @@ function restoreState(s){
   sv('f_invCompany',s.invCompany);sv('f_invAddress',s.invAddress);sv('f_invEmail',s.invEmail);
   sv('f_invCc',s.invCc);sv('f_invPO',s.invPO);sv('f_invContact',s.invContact);sv('f_invNotes',s.invNotes);
   sv('n_accommodation',s.nAccommodation);
+  if(s.flightsIn)setFlightData('flightsInBody',s.flightsIn,'in');
+  if(s.flightsOut)setFlightData('flightsOutBody',s.flightsOut,'out');
+  sv('n_flights',s.nFlights);
+  if(s.hireCars)setHireCarData(s.hireCars);
+  sv('n_hirecars',s.nHireCars);
   if(s.crew)setTableData('crewBody',s.crew);
   if(s.network_contacts)setTableData('networkBody',s.network_contacts);
   if(s.wxData)_wxData=s.wxData;
@@ -884,14 +1153,16 @@ function clearAll(){
     'f_firstAidOfficer','f_firstAidPhone','f_hospital','f_hospitalPhone','f_police','f_policePhone','f_muster',
     'f_venueName','f_venueAddress','f_venueSuburb','f_venueState','f_venuePhone','f_venueWeb','f_gps','f_accessNotes',
     'f_obMethod','f_obFeeds','f_returnVision','f_commsNotes','f_cameraPlot',
-    'f_invCompany','f_invAddress','f_invEmail','f_invCc','f_invPO','f_invContact','f_invNotes','n_accommodation'];
+    'f_invCompany','f_invAddress','f_invEmail','f_invCc','f_invPO','f_invContact','f_invNotes','n_accommodation','n_flights','n_hirecars'];
   ids.forEach(function(id){sv(id,'');});
   document.getElementById('crewBody').innerHTML='';
   document.getElementById('networkBody').innerHTML='';
   _wxData=[];
   document.getElementById('scheduleDays').innerHTML='';_dayCounter=0;
   document.getElementById('hotelBlocks').innerHTML='';_hotelCounter=0;
-  removePlot();
+  document.getElementById('flightsInBody').innerHTML='';
+  document.getElementById('flightsOutBody').innerHTML='';
+  document.getElementById('hireCarsBody').innerHTML='';
   _logoDataUrl=null;
   document.getElementById('prodLogoImg').style.display='none';
   document.getElementById('prodLogoImg').src='';
@@ -1051,6 +1322,9 @@ function exportCallSheet(){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=name.replace(/[^a-z0-9]+/gi,'_')+'.json';a.click();
 }
+// ─── SELECTIVE CALL SHEET IMPORT ─────────────────────────────────────────────
+var _pendingCSImport = null;
+
 function importCallSheet(inp){
   if(!inp.files||!inp.files[0])return;
   var r=new FileReader();
@@ -1058,16 +1332,139 @@ function importCallSheet(inp){
     try{
       var data=JSON.parse(e.target.result);
       if(!data.state)throw new Error();
-      if(!confirm('Load "'+data.name+'"? This replaces the current call sheet.'))return;
-      clearAll();restoreState(data.state);
-      _currentId=data.id||('cs_'+Date.now());
-      document.getElementById('saveName').value=data.name||'';
-      showUI();
-      showBanner('Imported: '+data.name);
+      _pendingCSImport=data;
+      document.getElementById('csImportFileName').textContent='📄 '+inp.files[0].name+(data.name?' — "'+data.name+'"':'');
+      var modal=document.getElementById('csImportModal');
+      modal.style.display='flex';
     }catch(err){alert('Could not read call sheet file.');}
   };
   r.readAsText(inp.files[0]);
   inp.value='';
+}
+
+function closeImportModal(){
+  document.getElementById('csImportModal').style.display='none';
+  _pendingCSImport=null;
+}
+
+function applyCSImport(){
+  if(!_pendingCSImport)return;
+  var s=_pendingCSImport.state;
+  var imported=[];
+
+  if(document.getElementById('chk_crew').checked&&s.crew){
+    document.getElementById('crewBody').innerHTML='';
+    s.crew.forEach(function(r){addCrewRow('crewBody',r);});
+    imported.push('Crew');
+  }
+  if(document.getElementById('chk_network').checked&&s.network_contacts){
+    document.getElementById('networkBody').innerHTML='';
+    s.network_contacts.forEach(function(r){addCrewRow('networkBody',r);});
+    imported.push('Network Contacts');
+  }
+  if(document.getElementById('chk_schedule').checked&&s.schedule){
+    setScheduleData(s.schedule);
+    imported.push('Schedule');
+  }
+  if(document.getElementById('chk_ob').checked){
+    if(s.obMethod)sv('f_obMethod',s.obMethod);
+    if(s.obFeeds)sv('f_obFeeds',s.obFeeds);
+    if(s.returnVision)sv('f_returnVision',s.returnVision);
+    if(s.commsNotes)sv('f_commsNotes',s.commsNotes);
+    if(s.cameraPlot)sv('f_cameraPlot',s.cameraPlot);
+    if(s.plotDataUrl){
+      _plotDataUrl=s.plotDataUrl;
+      var prev=document.getElementById('plotPreview');
+      prev.src=_plotDataUrl;prev.style.display='block';
+      document.getElementById('plotRemoveBtn').style.display='inline-block';
+      document.getElementById('plotUploadArea').style.display='none';
+    }
+    imported.push('OB Notes');
+  }
+  if(document.getElementById('chk_flights').checked){
+    if(s.flightsIn)setFlightData('flightsInBody',s.flightsIn,'in');
+    if(s.flightsOut)setFlightData('flightsOutBody',s.flightsOut,'out');
+    if(s.nFlights)sv('n_flights',s.nFlights);
+    if(s.hireCars)setHireCarData(s.hireCars);
+    if(s.nHireCars)sv('n_hirecars',s.nHireCars);
+    imported.push('Flights & Hire Cars');
+  }
+  if(document.getElementById('chk_accom').checked&&s.hotels){
+    setHotelData(s.hotels);
+    if(s.nAccommodation)sv('n_accommodation',s.nAccommodation);
+    imported.push('Accommodation');
+  }
+  if(document.getElementById('chk_invoicing').checked){
+    if(s.invCompany)sv('f_invCompany',s.invCompany);
+    if(s.invAddress)sv('f_invAddress',s.invAddress);
+    if(s.invEmail)sv('f_invEmail',s.invEmail);
+    if(s.invCc)sv('f_invCc',s.invCc);
+    if(s.invPO)sv('f_invPO',s.invPO);
+    if(s.invContact)sv('f_invContact',s.invContact);
+    if(s.invNotes)sv('f_invNotes',s.invNotes);
+    imported.push('Invoicing');
+  }
+
+  document.querySelectorAll('textarea').forEach(function(ta){autoResize(ta);});
+  closeImportModal();
+  showBanner(imported.length?'Imported: '+imported.join(', ')+'.':'Nothing selected — no changes made.');
+  if(!_currentId)_currentId='cs_'+Date.now();
+  triggerAutosave();
+}
+
+// ─── PERMISSIONS PANEL ───────────────────────────────────────────────────────
+var _permModules=[
+  {label:'Call Sheet Details',   defaults:['edit','edit','view','view','view','view','none']},
+  {label:'Recce / Survey',       defaults:['view','edit','edit','edit','edit','view','none']},
+  {label:'Schedule',             defaults:['edit','edit','edit','view','view','edit','view']},
+  {label:'Crew &amp; Contacts',  defaults:['view','edit','view','view','view','view','view']},
+  {label:'OB Notes',             defaults:['view','view','view','edit','edit','view','none']},
+  {label:'Accommodation',        defaults:['edit','edit','none','none','none','none','none']},
+  {label:'Flights &amp; Cars',   defaults:['edit','edit','none','none','none','none','none']},
+  {label:'Invoicing',            defaults:['edit','edit','none','none','none','none','none']},
+];
+var _permStates={};
+
+function buildPermissionsTable(){
+  var tbody=document.getElementById('permTableBody');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  _permModules.forEach(function(mod,mi){
+    var tr=document.createElement('tr');
+    var cells='<td style="padding:7px 10px;border:1px solid var(--border);font-weight:600;font-size:0.78rem;color:var(--text);">'+mod.label+'</td>';
+    mod.defaults.forEach(function(def,ci){
+      var key=mi+'_'+ci;
+      if(!_permStates[key])_permStates[key]=def;
+      var val=_permStates[key];
+      var bg=val==='edit'?'var(--success-bg)':val==='view'?'var(--blue-light)':'var(--field-bg)';
+      var bc=val==='edit'?'var(--success-border)':val==='view'?'var(--blue-mid)':'var(--border)';
+      var tc=val==='edit'?'var(--success)':val==='view'?'var(--blue)':'var(--hint)';
+      var label=val==='edit'?'Edit':val==='view'?'View':'—';
+      cells+='<td style="text-align:center;border:1px solid var(--border);padding:5px;">'+
+        '<button onclick="cyclePermission('+mi+','+ci+')" style="background:'+bg+';border:1px solid '+bc+';color:'+tc+';border-radius:4px;padding:3px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.06em;min-width:48px;">'+label+'</button>'+
+      '</td>';
+    });
+    tr.innerHTML=cells;
+    tbody.appendChild(tr);
+  });
+}
+
+function cyclePermission(mi,ci){
+  var key=mi+'_'+ci;
+  var cur=_permStates[key]||'none';
+  _permStates[key]=cur==='none'?'view':cur==='view'?'edit':'none';
+  buildPermissionsTable();
+}
+
+function togglePermissions(){
+  var panel=document.getElementById('permissionsPanel');
+  var chev=document.getElementById('permChevron');
+  var open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  chev.innerHTML=open?'&#9650;':'&#9660;';
+  if(open&&document.getElementById('permTableBody').children.length===0){
+    buildPermissionsTable();
+  }
 }
 
 // ─── PRINT / REPORT ──────────────────────────────────────────────────────────
@@ -1119,14 +1516,26 @@ function generateReport(){
   if(s.schedule&&s.schedule.length){
     schedHtml=s.schedule.map(function(day){
       var rows=day.blocks.map(function(b){
+        // Build time label
+        var tt=b.timeType||'Time';
+        var timeLabel='';
+        if(tt==='All Day') timeLabel='All Day';
+        else if(tt==='AM/PM') timeLabel='AM/PM';
+        else if(tt==='From') timeLabel='From '+(b.time||'');
+        else if(tt==='Approx') timeLabel='Approx '+(b.time||'');
+        else timeLabel=b.time||'';
+        var descHtml=b.bold?'<strong>'+nl(b.desc)+'</strong>':nl(b.desc);
         return '<tr>'+
-          '<td style="'+B+'padding:6px 10px;font-weight:700;white-space:nowrap;width:70px;vertical-align:top;font-size:10px;">'+esc(b.time)+'</td>'+
-          '<td style="'+B+'padding:6px 10px;font-size:10px;line-height:1.5;">'+nl(b.desc)+'</td>'+
+          '<td style="'+B+'padding:6px 10px;font-weight:700;white-space:nowrap;width:80px;vertical-align:top;font-size:10px;">'+esc(timeLabel)+'</td>'+
+          '<td style="'+B+'padding:6px 10px;font-size:10px;line-height:1.5;">'+descHtml+'</td>'+
+          '<td style="'+B+'padding:6px 10px;font-size:10px;vertical-align:top;width:110px;color:#444;">'+esc(b.contact||'')+'</td>'+
         '</tr>';
       }).join('');
       return '<div style="margin-top:12px;">'+
-        '<div style="background:#e8edf5;'+B+'padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#1a3a6b;">'+esc(day.label)+'</div>'+
-        (rows?'<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-top:none;">'+rows+'</table>':'')+'</div>';
+        '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">'+
+          '<tr><td colspan="3" style="background:#e8edf5;'+B+'padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#1a3a6b;">'+esc(day.label)+'</td>'+
+          '<td style="background:#e8edf5;'+B+'padding:6px 10px;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#1a3a6b;width:110px;">Contact</td></tr>'+
+        (rows?rows:'')+'</table></div>';
     }).join('');
   }
 
@@ -1149,13 +1558,18 @@ function generateReport(){
 
   // ── BUILD HTML ────────────────────────────────────────────────────────────
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(name)+'</title>';
+  var footerText=esc((s.showName||name)+(s.txDate?' \u2013 '+fmtAUDate(s.txDate):''));
   html+='<style>';
   html+='*{box-sizing:border-box;margin:0;padding:0;}';
   html+='body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:10px;line-height:1.5;padding:24px 28px;}';
   html+='@media print{';
-  html+='@page{size:A4;margin:14mm 14mm 18mm 14mm;}';
+  html+='@page{size:A4;margin:14mm 14mm 20mm 14mm;}';
   html+='body{padding:0;}';
-  html+='@page{@bottom-center{content:"'+esc(s.showName||name)+' \2013 " counter(page) " of " counter(pages);font-family:Arial,Helvetica,sans-serif;font-size:8pt;color:#888;}}';
+  html+='@page{';
+  html+='@bottom-left{content:"'+footerText+'";font-family:Arial,Helvetica,sans-serif;font-size:8pt;color:#888;}';
+  html+='@bottom-center{content:"";font-family:Arial,Helvetica,sans-serif;font-size:8pt;color:#888;}';
+  html+='@bottom-right{content:"Page " counter(page) " of " counter(pages);font-family:Arial,Helvetica,sans-serif;font-size:8pt;color:#888;}';
+  html+='}';
   html+='}';
   html+='.print-bar{position:fixed;top:0;left:0;right:0;background:#1a3a6b;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,0.2);}';
   html+='.print-bar-title{color:#fff;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.8;}';
@@ -1181,7 +1595,7 @@ function generateReport(){
     '<tr><td style="padding:16px;text-align:center;">'+
       '<div style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-decoration:underline;margin-bottom:8px;">CALL SHEET</div>'+
       '<div style="font-size:12px;font-weight:700;margin-bottom:4px;">'+esc(s.showName||'')+'</div>'+
-      (s.txDate?'<div style="font-size:11px;font-weight:700;margin-bottom:2px;">'+esc(s.txDate)+'</div>':'')+
+      (s.txDate?'<div style="font-size:11px;font-weight:700;margin-bottom:2px;">'+esc(fmtAUDate(s.txDate))+'</div>':'')+
       (s.venueName?'<div style="font-size:11px;font-weight:700;margin-bottom:2px;">'+esc(s.venueName)+(s.venueSuburb?', '+esc(s.venueSuburb):'')+(s.venueState?', '+esc(s.venueState):'')+'</div>':'')+
       ((s.txTime||s.endTime)?'<div style="font-size:11px;font-weight:700;">'+(s.txTime?esc(s.txTime):'')+(s.endTime?' \u2013 '+esc(s.endTime):'')+(s.txTime?' AEDT':'')+'</div>':'')+
     '</td></tr></table>';
@@ -1201,7 +1615,7 @@ function generateReport(){
     html+='<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;'+B+BT+'">';
     html+='<thead><tr>'+wxCols.map(function(w){
       var isTx=w.date===s.txDate;
-      return '<th style="'+B+'padding:8px 10px;text-align:center;background:'+(isTx?'#d8e4f0':'#e8edf5')+';font-size:10px;font-weight:700;width:'+(100/wxCols.length)+'%;">'+esc(w.label)+'</th>';
+      return '<th style="'+B+'padding:8px 10px;text-align:center;background:'+(isTx?'#d8e4f0':'#e8edf5')+';font-size:10px;font-weight:700;width:'+(100/wxCols.length)+'%;">'+esc(fmtAUDate(w.date))+'</th>';
     }).join('')+'</tr></thead>';
     html+='<tbody><tr>'+wxCols.map(function(w){
       return '<td style="'+B+'padding:12px 10px;vertical-align:top;font-size:10px;line-height:1.6;width:'+(100/wxCols.length)+'%;">'+
@@ -1292,6 +1706,25 @@ function generateReport(){
     html+='</td></tr></table>';
   }
 
+  // FLIGHTS
+  var hasFlights=(s.flightsIn&&s.flightsIn.some(function(r){return r.name;})) || (s.flightsOut&&s.flightsOut.some(function(r){return r.name;}));
+  if(hasFlights){
+    html+=secHdr('FLIGHTS');
+    if(s.nFlights){html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+BT+'"><tr><td style="padding:8px 12px;font-size:10px;font-style:italic;color:#555;">'+nl(s.nFlights)+'</td></tr></table>';}
+    var inRows=(s.flightsIn||[]).filter(function(r){return r.name;}).map(function(r){return[r.name,r.date,r.depart,r.arrive,r.flight,r.transport];});
+    if(inRows.length){html+='<div style="margin-top:8px;font-size:9px;font-weight:700;color:#1a3a6b;letter-spacing:0.08em;text-transform:uppercase;padding:4px 0;">INBOUND</div>';html+=dataTable(['NAME','DATE','DEPART','ARRIVE','FLIGHT #','TRANSPORT FROM AIRPORT'],inRows);}
+    var outRows=(s.flightsOut||[]).filter(function(r){return r.name;}).map(function(r){return[r.name,r.date,r.depart,r.arrive,r.flight,r.transport];});
+    if(outRows.length){html+='<div style="margin-top:10px;font-size:9px;font-weight:700;color:#1a3a6b;letter-spacing:0.08em;text-transform:uppercase;padding:4px 0;">OUTBOUND</div>';html+=dataTable(['NAME','DATE','DEPART','ARRIVE','FLIGHT #','TRANSPORT TO AIRPORT'],outRows);}
+  }
+
+  // HIRE CARS
+  var hireCarRows=(s.hireCars||[]).filter(function(r){return r.name;}).map(function(r){return[r.name,r.company,r.type,r.pickup,r.dropoff,r.confirm,r.passengers];});
+  if(hireCarRows.length){
+    html+=secHdr('HIRE CARS');
+    html+=dataTable(['NAME','COMPANY','TYPE','PICK UP','DROP OFF','CONFIRMATION #','PASSENGERS'],hireCarRows);
+    if(s.nHireCars)html+='<table width="100%" cellpadding="0" cellspacing="0" style="'+B+'border-top:none;"><tr><td style="padding:8px 12px;font-size:10px;font-style:italic;color:#555;">'+nl(s.nHireCars)+'</td></tr></table>';
+  }
+
   // ACCOMMODATION
   var hasAccom=s.hotels.some(function(h){return h.name;});
   if(hasAccom){
@@ -1325,3 +1758,32 @@ function generateReport(){
 }
 
 // ─── INIT ───────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  renderSaved(_currentId);
+
+  // Textarea auto-resize on input
+  document.addEventListener('input', function(e){
+    if(e.target.tagName === 'TEXTAREA') autoResize(e.target);
+  });
+
+  // Close import menu when clicking outside
+  document.addEventListener('click', function(e){
+    var menu = document.getElementById('importMenu');
+    if(menu && menu.style.display !== 'none'){
+      if(!e.target.closest('.loader-btn') && !e.target.closest('#importMenu')){
+        menu.style.display = 'none';
+      }
+    }
+  });
+
+  // Auto-geocode when venue address fields change
+  ['f_venueAddress','f_venueSuburb','f_venueState'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('blur', autoGeocodeFromDetails);
+  });
+  var txEl = document.getElementById('f_txDate');
+  if(txEl) txEl.addEventListener('change', autoGeocodeFromDetails);
+});
+</script>
+</body>
+</html>
