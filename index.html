@@ -622,7 +622,7 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
 
   <!-- ACTION WRAP -->
   <div class="action-wrap" id="actionWrap">
-    <button class="btn-blue" onclick="exportCallSheet()">&#9993; Email Call Sheet</button>
+    <button class="btn-blue" onclick="exportCallSheet()">Export Call Sheet</button>
     <button class="btn-outline" onclick="generateReport()">Generate Call Sheet</button>
   </div>
 
@@ -1321,18 +1321,17 @@ function exportCallSheet(){
   var name=document.getElementById('saveName').value.trim()||'callsheet';
   var obj={id:_currentId,name:name,savedAt:new Date().toISOString(),state:collectState()};
   var json=JSON.stringify(obj,null,2);
-  var filename=name.replace(/[^a-z0-9]+/gi,'_')+'.json';
-  var subject=encodeURIComponent('REKON Call Sheet — '+name);
-  var body=encodeURIComponent(
-    'Hi,\n\nPlease find the REKON Call Sheet attached below.\n\n'+
-    'To open it:\n'+
-    '1. Copy everything between the --- lines\n'+
-    '2. Paste it into a text editor and save as: '+filename+'\n'+
-    '3. Open the Call Sheet app and use Import ▾ → Import Previous Call Sheet\n\n'+
-    '---START---\n'+json+'\n---END---\n\n'+
-    'Regards'
-  );
-  window.location.href='mailto:?subject='+subject+'&body='+body;
+  var showName=(obj.state.showName||name).replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'');
+  var txDate=(obj.state.txDate||'').replace(/-/g,'-');
+  var filename=showName+(txDate?'_'+txDate:'')+'.json';
+  var blob=new Blob([json],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
 }
 // ─── SELECTIVE CALL SHEET IMPORT ─────────────────────────────────────────────
 var _pendingCSImport = null;
@@ -1342,15 +1341,20 @@ function importCallSheet(inp){
   var r=new FileReader();
   r.onload=function(e){
     try{
-      var data=JSON.parse(e.target.result);
-      if(!data.state)throw new Error();
+      var text=e.target.result;
+      // Strip any BOM character
+      if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+      var data=JSON.parse(text);
+      // Accept both {state:...} and flat state object
+      if(!data.state&&!data.showName)throw new Error('No valid call sheet data found');
+      if(!data.state)data={state:data,name:data.showName||'Imported'};
       _pendingCSImport=data;
       document.getElementById('csImportFileName').textContent='📄 '+inp.files[0].name+(data.name?' — "'+data.name+'"':'');
       var modal=document.getElementById('csImportModal');
       modal.style.display='flex';
-    }catch(err){alert('Could not read call sheet file.');}
+    }catch(err){alert('Could not read call sheet file. Error: '+err.message);}
   };
-  r.readAsText(inp.files[0]);
+  r.readAsText(inp.files[0],'UTF-8');
   inp.value='';
 }
 
