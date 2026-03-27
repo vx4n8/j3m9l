@@ -622,7 +622,7 @@ footer{text-align:center;padding:22px 20px;color:var(--hint);font-size:0.75rem;l
 
   <!-- ACTION WRAP -->
   <div class="action-wrap" id="actionWrap">
-    <button class="btn-blue" onclick="exportCallSheet()">Export / Share</button>
+    <button class="btn-blue" onclick="exportCallSheet()">&#9993; Email Call Sheet</button>
     <button class="btn-outline" onclick="generateReport()">Generate Call Sheet</button>
   </div>
 
@@ -1322,30 +1322,17 @@ function exportCallSheet(){
   var obj={id:_currentId,name:name,savedAt:new Date().toISOString(),state:collectState()};
   var json=JSON.stringify(obj,null,2);
   var filename=name.replace(/[^a-z0-9]+/gi,'_')+'.json';
-  // Safari iOS compatible export
-  var isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-  if(isIOS||isSafari){
-    // Open in new window so user can use Share sheet to save
-    var w=window.open('','_blank');
-    if(w){
-      w.document.open();
-      w.document.write('<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+filename+'</title></head><body style="font-family:sans-serif;padding:20px;background:#f5f7fa;">'+
-        '<div style="background:#fff;border-radius:8px;padding:20px;max-width:500px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,0.1);">'+
-        '<div style="font-size:1rem;font-weight:700;color:#0099FF;margin-bottom:8px;">&#128462; '+filename+'</div>'+
-        '<div style="font-size:0.85rem;color:#666;margin-bottom:16px;">Tap the <strong>Share</strong> button in your browser then <strong>Save to Files</strong> to save this call sheet.</div>'+
-        '<div style="font-size:0.75rem;color:#888;margin-bottom:16px;">Or copy the filename above and use it when saving.</div>'+
-        '<hr style="border:none;border-top:1px solid #e0e8f0;margin:16px 0;">'+
-        '<pre style="font-size:0.7rem;color:#444;white-space:pre-wrap;word-break:break-all;background:#f0f4f8;padding:12px;border-radius:6px;overflow:auto;max-height:300px;">'+json.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>'+
-        '<button onclick="window.close()" style="margin-top:16px;padding:10px 24px;background:#0099FF;color:#fff;border:none;border-radius:6px;font-size:0.9rem;font-weight:600;cursor:pointer;">&#8592; Back to Call Sheet</button>'+
-        '</div></body></html>');
-      w.document.close();
-    }
-  } else {
-    var blob=new Blob([json],{type:'application/json'});
-    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download=filename;a.click();
-  }
+  var subject=encodeURIComponent('REKON Call Sheet — '+name);
+  var body=encodeURIComponent(
+    'Hi,\n\nPlease find the REKON Call Sheet attached below.\n\n'+
+    'To open it:\n'+
+    '1. Copy everything between the --- lines\n'+
+    '2. Paste it into a text editor and save as: '+filename+'\n'+
+    '3. Open the Call Sheet app and use Import ▾ → Import Previous Call Sheet\n\n'+
+    '---START---\n'+json+'\n---END---\n\n'+
+    'Regards'
+  );
+  window.location.href='mailto:?subject='+subject+'&body='+body;
 }
 // ─── SELECTIVE CALL SHEET IMPORT ─────────────────────────────────────────────
 var _pendingCSImport = null;
